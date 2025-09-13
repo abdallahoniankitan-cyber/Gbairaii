@@ -673,7 +673,7 @@ function renderZones() {
   container.innerHTML = '';
 
   // Supprimer les zones vides ou sans posts
-  zones = zones.filter(z => z && z.trim() && posts.some(p => p.zone === z));
+  zones = zones.filter(z => z && z.trim());
 
   zones.forEach(z => {
     const btn = document.createElement('button');
@@ -681,10 +681,13 @@ function renderZones() {
     btn.innerText = z;
     btn.onclick = () => {
       currentZone = z;
+      // Mettre à jour le style actif
       document.querySelectorAll('#zone-tabs .tab-btn').forEach(b => b.classList.remove('active-tab'));
       btn.classList.add('active-tab');
+
       renderZoneFeed();
       updatePublishBtn();
+
       document.getElementById('home-page')?.classList.remove('active-page');
       document.getElementById('filter-page')?.classList.add('active-page');
     };
@@ -692,7 +695,7 @@ function renderZones() {
     container.appendChild(btn);
   });
 
-  // bouton + Créer
+  // Bouton + Créer toujours visible
   const createBtn = document.createElement('button');
   createBtn.className = 'tab-btn';
   createBtn.innerText = '+ Créer';
@@ -701,6 +704,7 @@ function renderZones() {
     if (modal) {
       document.getElementById('new-zone-name').value = '';
       modal.style.display = 'flex';
+      document.getElementById('new-zone-name').focus();
     } else {
       const name = prompt('Nom de la zone:');
       if (name && name.trim()) createZone(name.trim());
@@ -718,6 +722,7 @@ function renderZoneFeed() {
   feed.innerHTML = '';
 
   if (!currentZone) {
+    feed.innerHTML = "<p>Sélectionne une zone pour voir les posts.</p>";
     updatePublishBtn();
     return;
   }
@@ -728,17 +733,17 @@ function renderZoneFeed() {
   if (!zonePosts.length) {
     feed.innerHTML = "<p>Aucun post ici.</p>";
   } else {
-    zonePosts.sort((a,b) => b.id - a.id).forEach(p => {
-      const postEl = createPostDiv(p, 'zone');
-      feed.appendChild(postEl);
-      renderComments(p, 'zone');
-    });
+    zonePosts
+      .sort((a,b) => b.id - a.id) // du plus récent au plus ancien
+      .forEach(p => {
+        const postEl = createPostDiv(p, 'zone');
+        feed.appendChild(postEl);
+        renderComments(p, 'zone');
+      });
   }
 
   updatePublishBtn();
 }
-
-
 
 /* ---------------------------
    CREATE POST DIV
