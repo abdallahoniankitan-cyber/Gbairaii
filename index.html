@@ -624,17 +624,45 @@ function updatePublishBtn() {
 /* ---------------------------
    RENDER HOME / ZONES / POSTS
 --------------------------- */
-function renderHome() {
+
+   }     filteredPosts.sort((a,b) => (b.likes-b.dislikes) - (a.likes-a.dislikes));
+    } else if (currentHomeTab === 'new') {
+        filteredPosts.sort((a,b) => b.id - a.id);
+    }
+
+    filteredPosts.forEach(p => {
+        const div = createPostDiv(p, 'home');
+        feed.appendChild(div);
+        renderComments(p, 'home');
+    });
+}
+
+
+function submitNewZone() {
+    const name = document.getElementById('new-zone-name')?.value.trim();
+    if (!name) return alertModal("Le nom de la zone ne peut pas être vide !");
+    if (zones.includes(name)) return alertModal("Cette zone existe déjà !");
+  function renderHome() {
     const feed = document.getElementById('home-feed');
     if (!feed) return;
     feed.innerHTML = '';
-    // Supprimer les zones vide
     zones = zones.filter(z => z && z.trim() !== '');
 
-    // filtrage selon l'onglet
     let filteredPosts = [...posts];
     if (currentHomeTab === 'top') {
-   function renderZones(){
+        filteredPosts.sort((a,b) => (b.likes-b.dislikes) - (a.likes-a.dislikes));
+    } else if (currentHomeTab === 'new') {
+        filteredPosts.sort((a,b) => b.id - a.id);
+    }
+
+    filteredPosts.forEach(p => {
+        const div = createPostDiv(p, 'home');
+        feed.appendChild(div);
+        renderComments(p, 'home');
+    });
+}
+
+function renderZones() {
     const container = document.getElementById('zone-tabs');
     container.innerHTML = '';
 
@@ -661,24 +689,7 @@ function renderHome() {
         document.getElementById('create-zone-modal').style.display = 'flex';
     };
     container.appendChild(createBtn);
-   }     filteredPosts.sort((a,b) => (b.likes-b.dislikes) - (a.likes-a.dislikes));
-    } else if (currentHomeTab === 'new') {
-        filteredPosts.sort((a,b) => b.id - a.id);
-    }
-
-    filteredPosts.forEach(p => {
-        const div = createPostDiv(p, 'home');
-        feed.appendChild(div);
-        renderComments(p, 'home');
-    });
-}
-
-
-function submitNewZone() {
-    const name = document.getElementById('new-zone-name')?.value.trim();
-    if (!name) return alertModal("Le nom de la zone ne peut pas être vide !");
-    if (zones.includes(name)) return alertModal("Cette zone existe déjà !");
-    createZone(name);
+  }  createZone(name);
     document.getElementById('modal-overlay').style.display = 'none';
 }
 
