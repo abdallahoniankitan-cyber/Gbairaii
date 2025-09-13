@@ -662,16 +662,15 @@ function renderHome() {
 /* ---------------------------
    RENDER ZONES
 --------------------------- */
-
 function renderZones() {
-  // Supprimer uniquement les zones vides
-  zones = zones.filter(z => z && z.trim() !== '');
-
   const container = document.getElementById('zone-tabs');
   if (!container) return;
+
   container.innerHTML = '';
 
-  // Créer les boutons pour chaque zone
+  // Supprimer les zones vides ou sans posts
+  zones = zones.filter(z => z && z.trim() && posts.some(p => p.zone === z));
+
   zones.forEach(z => {
     const btn = document.createElement('button');
     btn.className = 'tab-btn';
@@ -689,7 +688,7 @@ function renderZones() {
     container.appendChild(btn);
   });
 
-  // bouton + Créer (toujours visible)
+  // bouton + Créer
   const createBtn = document.createElement('button');
   createBtn.className = 'tab-btn';
   createBtn.innerText = '+ Créer';
@@ -735,44 +734,7 @@ function renderZoneFeed() {
   updatePublishBtn();
 }
 
-/* ---------------------------
-   START POST (UI)
---------------------------- */
-function startPost() {
-    if(!currentUser) return alertModal('Connecte-toi pour publier');
-    const feed = document.querySelector('.publish-area');
-    if (!feed) return;
 
-    if (document.querySelector('.post-editor')) return;
-
-    const editorDiv = document.createElement('div');
-    editorDiv.className = 'post post-editor';
-    editorDiv.innerHTML = `
-        <textarea id="new-post-text" placeholder="Fais ton lailo..."></textarea>
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
-          <button onclick="publishPost()">Publier</button>
-          <button onclick="cancelPost(this)">Annuler</button>
-        </div>
-    `;
-    feed.prepend(editorDiv);
-    document.getElementById('new-post-text').focus();
-}
-
-/* ---------------------------
-   PUBLISH / CANCEL
---------------------------- */
-async function publishPost() {
-    const txt = document.getElementById('new-post-text');
-    if (!txt || !txt.value.trim()) return;
-
-    await createPost(txt.value.trim(), currentZone || 'Général');
-    if (txt.closest('.post-editor')) txt.closest('.post-editor').remove();
-}
-
-function cancelPost(btn) {
-    const editor = btn.closest('.post-editor');
-    if (editor) editor.remove();
-}
 
 /* ---------------------------
    CREATE POST DIV
@@ -811,6 +773,49 @@ function createPostDiv(post, page) {
     return div;
 }
 
+/* ---------------------------
+   START POST (UI)
+--------------------------- */
+function startPost() {
+  if(!currentUser) return alertModal('Connecte-toi pour publier');
+
+  const feed = document.querySelector('.publish-area');
+  if (!feed) return;
+
+  // Éviter de créer plusieurs éditeurs
+  if (document.querySelector('.post-editor')) return;
+
+  const editorDiv = document.createElement('div');
+  editorDiv.className = 'post post-editor';
+  editorDiv.innerHTML = `
+    <textarea id="new-post-text" placeholder="Fais ton lailo..."></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="publishPost()">Publier</button>
+      <button onclick="cancelPost(this)">Annuler</button>
+    </div>
+  `;
+  feed.prepend(editorDiv);
+  document.getElementById('new-post-text').focus();
+}
+
+/* ---------------------------
+   PUBLISH / CANCEL
+--------------------------- */
+async function publishPost() {
+  const txt = document.getElementById('new-post-text');
+  if (!txt || !txt.value.trim()) return;
+
+  await createPost(txt.value.trim(), currentZone || 'Général');
+  if (txt.closest('.post-editor')) txt.closest('.post-editor').remove();
+
+  // Re-render zones pour mettre à jour le feed et les boutons
+  renderZones();
+}
+
+function cancelPost(btn) {
+  const editor = btn.closest('.post-editor');
+  if (editor) editor.remove();
+}
 /* ---------------------------
    COMMENTS UI
 --------------------------- */
