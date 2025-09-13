@@ -833,54 +833,60 @@ async function publishPost(){
 function cancelPost(btn){
   const editor = btn.closest('.post-editor');
   if (editor) editor.remove();
-                                                         }st.user === currentUser){
-        menuHTML = `
-<div class="post-menu">
-    <button class="menu-btn" onclick="toggleMenu(${post.id}, '${page}')">⋮</button>
-    <div class="menu-content" id="menu-${post.id}-${page}">
-        <button onclick="editPost(${post.id}, '${page}')">✏️ Modifier</button>
-        <button onclick="deletePost(${post.id}, '${page}')">🗑️ Supprimer</button>
+function createPostDiv(post, page, isSpecial=false){
+  const div = document.createElement('div');
+  div.className = 'post';
+  if(isSpecial) div.classList.add('special-post');
+  div.id = `post-${post.id}-${page}`;
+
+  // menu (modifier / supprimer)
+  let menuHTML = '';
+  if (post.user === currentUser) {
+    menuHTML = `
+      <div class="post-menu">
+        <button onclick="editPost(${post.id}, '${page}')">✏️</button>
+        <button onclick="deletePost(${post.id}, '${page}')">🗑️</button>
+      </div>`;
+  }
+
+  div.innerHTML = `
+    <div class="post-header">
+      <strong>${escapeHtml(post.user)}</strong>
+      ${page === 'home' ? `<span class="zone-label">@${escapeHtml(post.zone)}</span>` : ''}
+      ${menuHTML}
     </div>
-</div>`;
-    }
-
-    // Classe CSS pour le pseudo
-    const userClass = post.user === 'système' ? 'user-system' : 'user-normal';
-    const userDisplay = `<span class="${userClass}">
-        ${escapeHtml(post.user)}${page === 'home' && post.zone ? ' - ' + escapeHtml(post.zone) : ''}
-    </span>`;
-
-    div.innerHTML = `
-<div class="post-header">
-    ${userDisplay}
-    ${menuHTML}
-</div>
-<div class="post-content">${escapeHtml(post.content)}</div>
-<div class="post-actions">
-    <button onclick="toggleLike(${post.id}, '${page}')">👍 ${post.likes || 0}</button>
-    <button onclick="toggleDislike(${post.id}, '${page}')">👎 ${post.dislikes || 0}</button>
-    <button onclick="toggleComments(${post.id}, '${page}')">🗨️ ${post.comments ? post.comments.length : 0}</button>
-</div>
-<div class="comments-container" id="${commentId}" style="display:none;flex-direction:column;gap:6px;"></div>
-`;
-
-    // Afficher les commentaires si déjà ouverts
-    if(post.isOpenComments) renderComments(post, page);
-
-    return div;
-}
+    <div class="post-content">${escapeHtml(post.content)}</div>
+    <div class="post-actions">
+      <button onclick="toggleLike(${post.id}, '${page}')">👍 ${post.likes}</button>
+      <button onclick="toggleDislike(${post.id}, '${page}')">👎 ${post.dislikes}</button>
+      <button onclick="toggleComments(${post.id}, '${page}')">💬 ${post.comments.length}</button>
+    </div>
+    <div class="comments" id="comments-${post.id}-${page}" style="display:none;"></div>
+  `;
+  return div;
+  }
+                                                         
 
 /* ---------------------------
    TOGGLE COMMENTS
 --------------------------- */
-function toggleComments(postId, page) {
-    const post = posts.find(p => p.id === postId);
-    if(!post) return;
+function toggleComments(postId, page){
+  const post = posts.find(p => p.id === postId);
+  if(!post) return;
 
-    post.isOpenComments = !post.isOpenComments;
-    renderComments(post, page, post.isOpenComments);
+  const commentsDiv = document.getElementById(`comments-${postId}-${page}`);
+  if (!commentsDiv) return;
+
+  const isVisible = commentsDiv.style.display !== 'none';
+  if (isVisible){
+    commentsDiv.style.display = 'none';
+    post.isOpenComments = false;
+  } else {
+    commentsDiv.style.display = 'block';
+    post.isOpenComments = true;
+    renderComments(post, page);
+  }
 }
-
 /* ---------------------------
    RENDER COMMENTS
 --------------------------- */
