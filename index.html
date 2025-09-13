@@ -621,100 +621,120 @@ function updatePublishBtn() {
 }
 
 // renderHome, renderZones et startPost restent inchangés pour conserver design et logique
+
 /* ---------------------------
-   RENDER HOME / ZONES / POSTS
+   ZONES & HOME / ZONE FEEDS (corrected)
 --------------------------- */
 
-   }     filteredPosts.sort((a,b) => (b.likes-b.dislikes) - (a.likes-a.dislikes));
-    } else if (currentHomeTab === 'new') {
-        filteredPosts.sort((a,b) => b.id - a.id);
-    }
-
-    filteredPosts.forEach(p => {
-        const div = createPostDiv(p, 'home');
-        feed.appendChild(div);
-        renderComments(p, 'home');
-    });
+function submitNewZone() {
+  const nameEl = document.getElementById('new-zone-name');
+  const name = nameEl ? nameEl.value.trim() : '';
+  if (!name) return alertModal("Le nom de la zone ne peut pas être vide !");
+  if (zones.includes(name)) return alertModal("Cette zone existe déjà !");
+  // Appel au backend (createZone gère l'alerte en cas d'erreur)
+  createZone(name);
+  // fermer la modale de création
+  const modal = document.getElementById('create-zone-modal');
+  if (modal) modal.style.display = 'none';
 }
 
+function renderHome() {
+  const feed = document.getElementById('home-feed');
+  if (!feed) return;
+  feed.innerHTML = '';
 
-function submitNewZone() {
-    const name = document.getElementById('new-zone-name')?.value.trim();
-    if (!name) return alertModal("Le nom de la zone ne peut pas être vide !");
-    if (zones.includes(name)) return alertModal("Cette zone existe déjà !");
-  function renderHome() {
-    const feed = document.getElementById('home-feed');
-    if (!feed) return;
-    feed.innerHTML = '';
-    zones = zones.filter(z => z && z.trim() !== '');
+  // Nettoyer les zones vides (si tu veux que les zones sans posts disparaissent)
+  zones = zones.filter(z => z && z.trim() !== '');
 
-    let filteredPosts = [...posts];
-    if (currentHomeTab === 'top') {
-        filteredPosts.sort((a,b) => (b.likes-b.dislikes) - (a.likes-a.dislikes));
-    } else if (currentHomeTab === 'new') {
-        filteredPosts.sort((a,b) => b.id - a.id);
-    }
+  // filtrage selon l'onglet
+  let filteredPosts = [...posts];
+  if (currentHomeTab === 'top') {
+    filteredPosts.sort((a,b) => (b.likes - b.dislikes) - (a.likes - a.dislikes));
+  } else if (currentHomeTab === 'new' || currentHomeTab === 'recent') {
+    filteredPosts.sort((a,b) => b.id - a.id);
+  }
 
-    filteredPosts.forEach(p => {
-        const div = createPostDiv(p, 'home');
-        feed.appendChild(div);
-        renderComments(p, 'home');
-    });
+  filteredPosts.forEach(p => {
+    const div = createPostDiv(p, 'home');
+    feed.appendChild(div);
+    renderComments(p, 'home');
+  });
 }
 
 function renderZones() {
-    const container = document.getElementById('zone-tabs');
-    container.innerHTML = '';
+  // IMPORTANT : le container doit correspondre à l'ID dans ton HTML
+  // (ici j'utilise "zones-list" parce que c'est ce que tu as dans le dernier HTML partagé)
+  const container = document.getElementById('zones-list');
+  if (!container) return;
+  container.innerHTML = '';
 
-    zones.forEach(z => {
-        const btn = document.createElement('button');
-        btn.className = 'tab-btn';
-        btn.innerText = z;
-        btn.onclick = () => {
-            currentZone = z;
-            document.querySelectorAll('#zone-tabs .tab-btn').forEach(b => b.classList.remove('active-tab'));
-            btn.classList.add('active-tab');
-            renderZoneFeed();
-            updatePublishBtn();
-        };
-        if (z === currentZone) btn.classList.add('active-tab');
-        container.appendChild(btn);
-    });
+  // S'assurer d'avoir la liste à jour
+  zones = zones.filter(z => z && z.trim() !== '');
 
-    const createBtn = document.createElement('button');
-    createBtn.className = 'tab-btn';
-    createBtn.innerText = '+ Créer';
-    createBtn.onclick = () => {
-        document.getElementById('new-zone-name').value = '';
-        document.getElementById('create-zone-modal').style.display = 'flex';
+  zones.forEach(z => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn';
+    btn.innerText = z;
+    btn.onclick = () => {
+      currentZone = z;
+      // Visuel onglet actif
+      document.querySelectorAll('#zones-list .tab-btn').forEach(b => b.classList.remove('active-tab'));
+      btn.classList.add('active-tab');
+      // afficher le feed pour cette zone
+      renderZoneFeed();
+      updatePublishBtn();
+      // aller sur la page Zones si nécessaire
+      document.getElementById('home-page')?.classList.remove('active-page');
+      document.getElementById('filter-page')?.classList.add('active-page');
     };
-    container.appendChild(createBtn);
-  }  createZone(name);
-    document.getElementById('modal-overlay').style.display = 'none';
+    if (z === currentZone) btn.classList.add('active-tab');
+    container.appendChild(btn);
+  });
+
+  // bouton pour ajouter une nouvelle zone (même style que les onglets)
+  const createBtn = document.createElement('button');
+  createBtn.className = 'tab-btn';
+  createBtn.innerText = '+ Créer';
+  createBtn.onclick = () => {
+    const modal = document.getElementById('create-zone-modal');
+    if (modal) {
+      document.getElementById('new-zone-name').value = '';
+      modal.style.display = 'flex';
+    } else {
+      // fallback simple
+      const name = prompt('Nom de la zone:');
+      if (name && name.trim()) createZone(name.trim());
+    }
+  };
+  container.appendChild(createBtn);
 }
 
-  function renderZoneFeed(){
-    const feed = document.getElementById('zone-feed');
-    feed.innerHTML = '';
+function renderZoneFeed() {
+  const feed = document.getElementById('zone-feed');
+  if (!feed) return;
+  feed.innerHTML = '';
 
-    if(!currentZone) return updatePublishBtn();
-
-    // Filtrer les posts pour la zone courante
-    const zonePosts = posts.filter(p => p.zone === currentZone);
-
-    if(!zonePosts.length){
-        feed.innerHTML = "<p>Aucun post ici.</p>";
-    } else {
-        // Trier du plus récent au plus ancien
-        zonePosts.sort((a,b) => b.id - a.id).forEach(p => {
-            const postEl = createPostDiv(p,'zone');
-            feed.appendChild(postEl);
-            renderComments(p,'zone');
-        });
-    }
-
+  if (!currentZone) {
     updatePublishBtn();
+    return;
   }
+
+  // Filtrer les posts pour la zone courante
+  const zonePosts = posts.filter(p => p.zone === currentZone);
+
+  if (!zonePosts.length) {
+    feed.innerHTML = "<p>Aucun post ici.</p>";
+  } else {
+    // Trier du plus récent au plus ancien
+    zonePosts.sort((a,b) => b.id - a.id).forEach(p => {
+      const postEl = createPostDiv(p, 'zone');
+      feed.appendChild(postEl);
+      renderComments(p, 'zone');
+    });
+  }
+
+  updatePublishBtn();
+}  
 
 /* ---------------------------
    START POST (UI)
