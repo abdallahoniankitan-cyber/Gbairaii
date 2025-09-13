@@ -634,7 +634,7 @@ function renderHome() {
 }
 
 function renderZones() {
-    const container = document.getElementById('zones-list'); // ton div pour les zones
+    const container = document.getElementById('zones-list');
     if (!container) return;
     container.innerHTML = '';
 
@@ -645,12 +645,10 @@ function renderZones() {
         btn.onclick = () => {
             currentZone = z;
             renderZones(); // met à jour visuellement
-            alertModal(`Zone sélectionnée : ${z}`); // optionnel, juste pour confirmer
         };
         container.appendChild(btn);
     });
 
-    // bouton pour ajouter une nouvelle zone
     const addBtn = document.createElement('button');
     addBtn.textContent = '+ Nouvelle zone';
     addBtn.onclick = () => {
@@ -662,14 +660,24 @@ function renderZones() {
             <input type="text" id="new-zone-name" placeholder="Nom de la zone..." 
                 style="width:80%;padding:8px;border-radius:10px;border:1px solid #ccc;">`;
         btns.innerHTML = `
-            <button onclick="submitNewZone()">Créer</button>
-            <button onclick="overlay.style.display='none'">Annuler</button>
+            <button id="create-zone-btn">Créer</button>
+            <button id="cancel-zone-btn">Annuler</button>
         `;
         overlay.style.display = 'flex';
+
+        document.getElementById('create-zone-btn').onclick = () => {
+            const name = document.getElementById('new-zone-name').value.trim();
+            if (!name) return alertModal("Le nom de la zone ne peut pas être vide !");
+            if (zones.includes(name)) return alertModal("Cette zone existe déjà !");
+            createZone(name);
+            overlay.style.display = 'none';
+        };
+        document.getElementById('cancel-zone-btn').onclick = () => {
+            overlay.style.display = 'none';
+        };
     };
     container.appendChild(addBtn);
-}
-
+  }
 function submitNewZone() {
     const name = document.getElementById('new-zone-name')?.value.trim();
     if (!name) return alertModal("Le nom de la zone ne peut pas être vide !");
