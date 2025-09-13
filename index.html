@@ -660,13 +660,12 @@ function renderHome() {
     renderComments(p, 'home');
   });
 }
-
 function renderZones() {
-  // IMPORTANT : le container doit correspondre à l'ID dans ton HTML
-  // (ici j'utilise "zones-list" parce que c'est ce que tu as dans le dernier HTML partagé)
-  const container = document.getElementById('zones-list');
-  if (!container) return;
-  container.innerHTML = '';
+    // Supprimer les zones vides
+    zones = zones.filter(z => z && z.trim() !== '');
+
+    const container = document.getElementById('zone-tabs');
+    container.innerHTML = '';
 
   // S'assurer d'avoir la liste à jour
   zones = zones.filter(z => z && z.trim() !== '');
