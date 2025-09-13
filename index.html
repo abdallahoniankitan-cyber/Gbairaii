@@ -568,22 +568,26 @@ async function dislikePost(id) {
    ZONES
 --------------------------- */
 async function createZone(name) {
-  try {
-    const res = await fetch(`${FRONT_API}/api/zones`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
-      credentials: 'include'
-    });
-    if (res.ok) {
-      const zone = await res.json();
-      zones.push(zone.name);
-      renderZones();
-    } else {
-      const err = await res.json();
-      alertModal(err.message || 'Erreur création zone');
+    if (!name || !name.trim()) return;
+
+    try {
+        const res = await fetch(`${FRONT_API}/api/zones`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name }),
+            credentials: 'include'
+        });
+        if (res.ok) {
+            const zone = await res.json();
+            zones.push(zone.name);
+            renderZones();
+        } else {
+            const err = await res.json();
+            alertModal(err.message || 'Erreur création zone');
+        }
+    } catch (e) {
+        alertModal('Impossible de créer la zone.');
     }
-  } catch (e) { alertModal('Impossible de créer la zone.'); }
 }
 
 /* ---------------------------
