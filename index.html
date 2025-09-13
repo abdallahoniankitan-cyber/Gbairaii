@@ -669,6 +669,29 @@ function submitNewZone() {
     document.getElementById('modal-overlay').style.display = 'none';
 }
 
+  function renderZoneFeed(){
+    const feed = document.getElementById('zone-feed');
+    feed.innerHTML = '';
+
+    if(!currentZone) return updatePublishBtn();
+
+    // Filtrer les posts pour la zone courante
+    const zonePosts = posts.filter(p => p.zone === currentZone);
+
+    if(!zonePosts.length){
+        feed.innerHTML = "<p>Aucun post ici.</p>";
+    } else {
+        // Trier du plus récent au plus ancien
+        zonePosts.sort((a,b) => b.id - a.id).forEach(p => {
+            const postEl = createPostDiv(p,'zone');
+            feed.appendChild(postEl);
+            renderComments(p,'zone');
+        });
+    }
+
+    updatePublishBtn();
+  }
+
 /* ---------------------------
    START POST (UI)
 --------------------------- */
