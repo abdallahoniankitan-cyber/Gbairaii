@@ -662,6 +662,7 @@ function renderHome() {
 /* ---------------------------
    RENDER ZONES
 --------------------------- */
+
 function renderZones() {
   // Supprimer uniquement les zones vides
   zones = zones.filter(z => z && z.trim() !== '');
@@ -670,6 +671,7 @@ function renderZones() {
   if (!container) return;
   container.innerHTML = '';
 
+  // Créer les boutons pour chaque zone
   zones.forEach(z => {
     const btn = document.createElement('button');
     btn.className = 'tab-btn';
@@ -687,7 +689,7 @@ function renderZones() {
     container.appendChild(btn);
   });
 
-  // bouton + Créer
+  // bouton + Créer (toujours visible)
   const createBtn = document.createElement('button');
   createBtn.className = 'tab-btn';
   createBtn.innerText = '+ Créer';
