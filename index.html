@@ -623,28 +623,26 @@ function updatePublishBtn() {
 // renderHome, renderZones et startPost restent inchangés pour conserver design et logique
 
 /* ---------------------------
-   ZONES & HOME / ZONE FEEDS (corrected)
+   CREATION NOUVELLE ZONE
 --------------------------- */
-
 function submitNewZone() {
   const nameEl = document.getElementById('new-zone-name');
   const name = nameEl ? nameEl.value.trim() : '';
   if (!name) return alertModal("Le nom de la zone ne peut pas être vide !");
   if (zones.includes(name)) return alertModal("Cette zone existe déjà !");
-  // Appel au backend (createZone gère l'alerte en cas d'erreur)
-  createZone(name);
-  // fermer la modale de création
+
+  createZone(name); // Appel au backend
   const modal = document.getElementById('create-zone-modal');
   if (modal) modal.style.display = 'none';
 }
 
+/* ---------------------------
+   RENDER HOME
+--------------------------- */
 function renderHome() {
   const feed = document.getElementById('home-feed');
   if (!feed) return;
   feed.innerHTML = '';
-
-  // Nettoyer les zones vides (si tu veux que les zones sans posts disparaissent)
-  zones = zones.filter(z => z && z.trim() !== '');
 
   // filtrage selon l'onglet
   let filteredPosts = [...posts];
@@ -661,14 +659,15 @@ function renderHome() {
   });
 }
 
+/* ---------------------------
+   RENDER ZONES
+--------------------------- */
 function renderZones() {
-  // Supprimer les zones vides OU sans posts
-  zones = zones.filter(z => {
-    if (!z || !z.trim()) return false;
-    return posts.some(p => p.zone === z);
-  });
+  // Supprimer uniquement les zones vides
+  zones = zones.filter(z => z && z.trim() !== '');
 
   const container = document.getElementById('zone-tabs');
+  if (!container) return;
   container.innerHTML = '';
 
   zones.forEach(z => {
@@ -677,7 +676,7 @@ function renderZones() {
     btn.innerText = z;
     btn.onclick = () => {
       currentZone = z;
-      document.querySelectorAll('#zones-list .tab-btn').forEach(b => b.classList.remove('active-tab'));
+      document.querySelectorAll('#zone-tabs .tab-btn').forEach(b => b.classList.remove('active-tab'));
       btn.classList.add('active-tab');
       renderZoneFeed();
       updatePublishBtn();
@@ -705,6 +704,9 @@ function renderZones() {
   container.appendChild(createBtn);
 }
 
+/* ---------------------------
+   RENDER FEED PAR ZONE
+--------------------------- */
 function renderZoneFeed() {
   const feed = document.getElementById('zone-feed');
   if (!feed) return;
@@ -721,7 +723,6 @@ function renderZoneFeed() {
   if (!zonePosts.length) {
     feed.innerHTML = "<p>Aucun post ici.</p>";
   } else {
-    // Trier du plus récent au plus ancien
     zonePosts.sort((a,b) => b.id - a.id).forEach(p => {
       const postEl = createPostDiv(p, 'zone');
       feed.appendChild(postEl);
@@ -730,7 +731,7 @@ function renderZoneFeed() {
   }
 
   updatePublishBtn();
-}  
+}
 
 /* ---------------------------
    START POST (UI)
