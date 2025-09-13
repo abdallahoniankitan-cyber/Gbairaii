@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gbairai</title>
+<style>
+/* RESET */
+* {box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif;}
+body {transition:0.3s;}
+button {cursor:pointer;outline:none;}
+/* MODES */
+body.dark {background:#121212;color:#e0e0e0;}
+body.light {background:#f2f2f2;color:#333;}
+/* HEADER CORRIGÉ */
+header {
+  width: 100%;
+  background-color: #e1f0ff; /* Même couleur que les posts */
+  padding: 0 20px;
+  border-radius: 0 0 10px 10px; /* rectangulaire en haut, arrondi seulement en bas */
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-container img {
+  height: 40px;
+  width: auto;
+}
+
+.icons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-btn {
+  padding: 6px 10px;
+  border: none;
+  background: #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+}
+
+/* LOGO */
+#filter-page .logo-container span {
+  margin-right: 5px;
+  white-space: nowrap; /* évite le retour à la ligne */
+}
+
+/* CONTAINERS */
+.container {padding:15px;max-width:600px;margin:auto;}
+.page {display:none;}
+.active-page {display:block;}
+/* BOUTONS UNIFORMES ARRONDIS */
+button {
+  border:none;
+  border-radius:12px;
+  font-weight:bold;
+  padding:8px 14px;
+  transition:0.2s;
+  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+button:hover {filter: brightness(1.1);}
+button:active {filter: brightness(0.9);}
+/* SPECIFIQUE */
+.tab-btn {flex:1;text-align:center;}
+.tab-btn.active-tab {filter: brightness(0.85);box-shadow:0 4px 10px rgba(0,0,0,0.25);}
+.tab-container {display:flex;gap:8px;margin:10px 0;justify-content:center;flex-wrap:wrap;}
+.post {padding:14px;margin-bottom:12px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.1);transition:0.2s;}
+.post-header {display:flex;justify-content:space-between;align-items:center;font-weight:bold;margin-bottom:6px;}
+.post-content {margin-bottom:8px;word-wrap:break-word;}
+.post-actions {display:flex;gap:10px;margin-bottom:6px;align-items:center;}
+.comments {margin-top:6px;display:flex;flex-direction:column;gap:6px;}
+.comment {display:flex;align-items:center;position:relative;}
+.comment-bar {width:4px;height:100%;border-radius:2px;margin-right:8px;background:#4a90e2;}
+.comment-text {flex:1;padding:6px 10px;border-radius:12px;}
+.comment button {margin-left:8px;background:transparent;color:#ff4d4d;font-weight:bold;font-size:1em;}
+.add-comment {display:flex;gap:5px;margin-top:5px;}
+.add-comment input {flex:1;padding:6px 10px;border-radius:12px;border:1px solid #ccc;background:inherit;color:inherit;}
+.add-comment input:focus {border-color:#4a90e2;outline:none;}
+.post-editor textarea {width:100%;padding:8px;border-radius:12px;border:1px solid #ccc;margin-bottom:5px;background:inherit;color:inherit;}
+.post-editor textarea:focus {border-color:#4a90e2;outline:none;}
+/* POSTS STYLE */
+body.light .post {background:#fff;color:#333;}
+body.dark .post {background:#1e1e1e;color:#e0e0e0;}
+body.light .comment-text {background:#e1f0ff;color:#333;}
+body.dark .comment-text {background:#2a2a2a;color:#e0e0e0;}
+/* ---------------------------
+   POST MENU ⋮
+--------------------------- */
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 6px;
+  position: relative; /* nécessaire pour menu absolu */
+}
+
+.post-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.menu-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.menu-btn.active {
+  background-color: rgba(0,0,0,0.1);
+}
+
+.menu-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 110%;
+  background-color: #fff;
+  color: #000;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  min-width: 120px;
+  z-index: 999;
+  overflow: hidden;
+}
+
+.menu-content button {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  background: inherit;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: 0.2s;
+}
+
+.menu-content button:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+/* LOGIN */
+#login-page input {padding:10px 12px;border-radius:12px;border:1px solid #ccc;background:inherit;color:inherit;}
+#login-page input:focus {border-color:#4a90e2;outline:none;}
+#login-page button {background:#4a90e2;color:#fff;width:100%;margin-top:10px;}
+/* BOUTON + */
+.publish-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  color: #000;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  background: #fff;
+  cursor: pointer;
+  z-index: 999;
+}
+/* Forcer certains textes en noir en mode sombre */
+body.dark #login-page header,
+body.dark #home-page .logo-container span,
+body.dark #filter-page .logo-container span {
+  color: #000 !important;
+}
+
+#login-page input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 20px; /* harmonisé avec le header */
+  border: 1px solid #ccc;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+#login-page button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(145deg,#4a90e2,#357ABD);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.page {
+  display:none;
+  min-height: 100vh;
+}
+.active-page {
+  display:block;
+}
+
+#logout-btn i {
+  margin-right: 6px;   /* espace entre l’icône et le texte */
+  font-size: 18px;     /* taille de l’icône */
+  vertical-align: middle;
+}
+
+
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+<body class= "dark">
+<div id="login-page" class="page active-page">
+  <header>Connexion / Inscription</header>
+  <div class="container" style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
+    <input type="text" id="login-username" placeholder="Pseudo (≥3 caractères)">
+    <input type="password" id="login-password" placeholder="Mot de passe (≥3 caractères)">
+    <button id="login-btn">Connexion</button>
+  </div>
+</div>
+<!-- ACCUEIL -->
+<div id="home-page" class="page">
+  <header>
+    <div class="header-content">
+      <!-- Logo à gauche -->
+      <div class="logo-container">
+        <img src="monlogo.png" alt="Logo">
+        <span>Gbairai</span>
+      </div>
+      <!-- Icônes à droite -->
+      <div class="icons">
+        <button class="header-btn" id="mode-btn">🌙</button>
+        <button class="header-btn" id="logout-btn">
+  <i class="fa-solid fa-right-to-bracket"></i> Déconnexion
+</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="tab-container">
+    <button class="tab-btn active-tab" onclick="switchHomeTab('top', this)">🏆 Top 10</button>
+    <button class="tab-btn" onclick="switchHomeTab('recent', this)">🕒 Récentes</button>
+    <button class="tab-btn" onclick="goToFilter()">🌐 Zones</button>
+  </div>
+
+  <div id="home-feed"></div>
+</div>
+
+<!-- ZONES PAGE -->
+<div id="filter-page" class="page">
+  <header>
+    <div class="header-content">
+      <!-- Logo à gauche -->
+      <div class="logo-container">
+        <img src="monlogo.png" alt="Logo">
+        <span>Zones</span>
+      </div>
+      <!-- Icônes à droite -->
+      <div class="icons">
+        <button class="header-btn" onclick="goToHome()">🏠</button>
+        <button class="header-btn" id="mode-btn-2">🌙</button>
+        <button class="header-btn" id="logout-btn">
+  <i class="fa-solid fa-right-to-bracket"></i> Déconnexion
+</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="tab-container" id="zone-tabs"></div>
+  <div id="zone-feed"></div>
+</div>
+
+<!-- Bouton publier -->
+<button class="publish-btn" onclick="startPost()">+</button>
+<!-- MODALE -->
+<div id="modal-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;">
+  <div id="modal" style="background:#fff;color:#000;padding:20px;border-radius:16px;max-width:320px;width:90%;box-shadow:0 4px 12px rgba(0,0,0,0.3);text-align:center;">
+    <div id="modal-message" style="margin-bottom:16px;"></div>
+    <div id="modal-buttons" style="display:flex;gap:10px;justify-content:center;"></div>
+  </div>
+</div>
+
+<!-- CREATE ZONE MODAL (injected by script if missing) -->
+
+<script>
+  
+let posts = [];         // tableau d'objets posts
+let zones = [];         // tableau de zones
+let users = [];         // (optionnel) liste utilisateurs
+let currentUser = null; // pseudo courant
+let darkMode = true;
+let currentHomeTab = 'top';
+let currentZone = null;
+
+/* --- Helpers pour localStorage pour fallback offline --- */
+const STORAGE_POSTS_KEY = 'gb_posts_v1';
+const STORAGE_USER_KEY = 'gb_user_v1';
+const STORAGE_ZONES_KEY = 'gb_zones_v1';
+
+function saveToLocal() {
+  try {
+    localStorage.setItem(STORAGE_POSTS_KEY, JSON.stringify(posts));
+    localStorage.setItem(STORAGE_ZONES_KEY, JSON.stringify(zones));
+  } catch (e) {
+    console.warn('Impossible de sauvegarder en local:', e);
+  }
+}
+function loadFromLocal() {
+  try {
+    const p = localStorage.getItem(STORAGE_POSTS_KEY);
+    const z = localStorage.getItem(STORAGE_ZONES_KEY);
+    if (p) posts = JSON.parse(p);
+    if (z) zones = JSON.parse(z);
+  } catch (e) {
+    console.warn('Impossible de charger depuis local:', e);
+  }
+}
+
+/* ---------------------------
+   Initialisation au chargement
+   --------------------------- */
+(function boot() {
+  // restauration session
+  const savedUser = localStorage.getItem(STORAGE_USER_KEY);
+  if (savedUser) {
+    currentUser = savedUser;
+    document.getElementById('login-page').classList.remove('active-page');
+    document.getElementById('home-page').classList.add('active-page');
+  }
+  // charger données locales au besoin
+  loadFromLocal();
+
+  // si pas de zones, initialiser une zone par défaut
+  if (!zones || zones.length === 0) zones = ['Général'];
+
+  // tenter récupération depuis backend (/me) mais ne pas forcer échec si offline
+  (async () => {
+    try {
+      const res = await fetch('https://gbairai-backend.onrender.com/api/me', {credentials:'include'});
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.username) {
+          currentUser = data.username;
+          localStorage.setItem(STORAGE_USER_KEY, currentUser);
+          document.getElementById('login-page').classList.remove('active-page');
+          document.getElementById('home-page').classList.add('active-page');
+        }
+      }
+    } catch (e) {
+      // backend indisponible -> on reste en local
+      // console.log('Backend /me unreachable, using local session if any.');
+    } finally {
+      // initial render
+      initData();
+    }
+  })();
+})();
+
+/* ---------------------------
+   Initial data load & render
+   --------------------------- */
+async function initData() {
+  // tenter d'hydrater depuis backend si possible, sinon utiliser local
+  try {
+    const resPosts = await fetch('https://gbairai-backend.onrender.com/api/posts');
+    if (resPosts.ok) {
+      posts = await resPosts.json();
+    } else {
+      // fallback to local
+      loadFromLocal();
+    }
+  } catch (e) {
+    loadFromLocal();
+  }
+
+  try {
+    const resZones = await fetch('https://gbairai-backend.onrender.com/api/zones');
+    if (resZones.ok) {
+      zones = await resZones.json();
+    } else {
+      if (!zones || zones.length === 0) zones = ['Général'];
+    }
+  } catch (e) {
+    if (!zones || zones.length === 0) zones = ['Général'];
+  }
+
+  // ensure posts are well-formed and have arrays for likedBy/dislikedBy/comments
+  posts = posts.map(p => {
+    return {
+      id: p.id || Date.now() + Math.floor(Math.random()*100000),
+      user: p.user || 'anonyme',
+      content: p.content || '',
+      zone: p.zone || 'Général',
+      likes: Number(p.likes || 0),
+      dislikes: Number(p.dislikes || 0),
+      likedBy: Array.isArray(p.likedBy) ? p.likedBy : (p.likedBy ? [p.likedBy] : []),
+      dislikedBy: Array.isArray(p.dislikedBy) ? p.dislikedBy : (p.dislikedBy ? [p.dislikedBy] : []),
+      comments: Array.isArray(p.comments) ? p.comments : []
+    };
+  });
+
+  saveToLocal();
+  renderHome();
+  renderZones();
+  updatePublishBtn();
+}
+
+/* ---------------------------
+   UI Mode toggle & Logout
+   --------------------------- */
+function toggleMode(){
+  darkMode = !darkMode;
+  document.body.className = darkMode ? 'dark' : 'light';
+  document.querySelectorAll('.header-btn').forEach(btn=>{
+    if(btn.innerText.includes('🌙')||btn.innerText.includes('☀️'))
+      btn.innerText = darkMode ? '🌙' : '☀️';
+  });
+}
+function logout(){
+  currentUser = null;
+  currentZone = null;
+  localStorage.removeItem(STORAGE_USER_KEY);
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active-page'));
+  document.getElementById('login-page').classList.add('active-page');
+}
+
+// Mode sombre / clair
+document.getElementById('mode-btn')?.addEventListener('click', toggleMode);
+document.getElementById('mode-btn-2')?.addEventListener('click', toggleMode);
+
+// Déconnexion
+document.getElementById('logout-btn')?.addEventListener('click', logout);
+document.getElementById('logout-btn-2')?.addEventListener('click', logout);
+
+/* ---------------------------
+   LOGIN FLOW
+   --------------------------- */
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value.trim();
+
+  if (username.length < 3 || password.length < 3) {
+    alertModal('Pseudo et mot de passe doivent contenir au moins 3 caractères.');
+    return;
+  }
+
+  // Try backend login; on failure we fallback to a local "accept" (for demo/offline)
+  try {
+    const res = await fetch('https://gbairai-backend.onrender.com/api/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username, password}),
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (res.ok && data && data.success) {
+      currentUser = (data.user && data.user.username) ? data.user.username : (data.user || username);
+      localStorage.setItem(STORAGE_USER_KEY, currentUser);
+      document.getElementById('login-page').classList.remove('active-page');
+      document.getElementById('home-page').classList.add('active-page');
+      await initData();
+      renderZones();
+      updatePublishBtn();
+      return;
+    } else {
+      // backend responded but not ok
+      // fallthrough to offline acceptance (so app stays usable offline)
+    }
+  } catch (e) {
+    // backend unreachable -> offline mode
+  }
+
+  // Offline fallback: accept the username (this keeps app usable locally)
+  currentUser = username;
+  localStorage.setItem(STORAGE_USER_KEY, currentUser);
+  document.getElementById('login-page').classList.remove('active-page');
+  document.getElementById('home-page').classList.add('active-page');
+  initData();
+});
+
+/* ---------------------------
+   NAVIGATION & TABS
+   --------------------------- */
+function goToHome(){
+  document.getElementById('filter-page').classList.remove('active-page');
+  document.getElementById('home-page').classList.add('active-page');
+  renderHome();
+  updatePublishBtn();
+}
+function goToFilter(){
+  document.getElementById('home-page').classList.remove('active-page');
+  document.getElementById('filter-page').classList.add('active-page');
+  renderZones();
+  updatePublishBtn();
+}
+function switchHomeTab(tab, btn){
+  currentHomeTab = tab;
+  document.querySelectorAll('#home-page .tab-btn').forEach(b=>b.classList.remove('active-tab'));
+  if (btn) btn.classList.add('active-tab');
+  renderHome();
+}
+
+/* ---------------------------
+   RENDER HOME & ZONES via renderFeed
+   --------------------------- */
+function renderHome() {
+  renderFeed('home');
+}
+
+function renderZoneFeed() {
+  renderFeed('zone');
+}
+
+function renderFeed(page) {
+  const feedId = page === 'home' ? 'home-feed' : 'zone-feed';
+  const feed = document.getElementById(feedId);
+  if (!feed) return;
+
+  feed.innerHTML = '';
+
+  // récupère les posts selon la page
+  let feedPosts = page === 'home' ? [...posts] : posts.filter(p => p.zone === currentZone);
+
+  if (page === 'home') {
+    if (currentHomeTab === 'top') {
+      feedPosts = feedPosts.sort((a,b) => b.likes - a.likes).slice(0,10);
+    } else {
+      feedPosts.sort((a,b) => b.id - a.id);
+    }
+  } else {
+    feedPosts.sort((a,b) => b.id - a.id);
+  }
+
+  // optional: special post (moins de commentaires)
+  const minComments = feedPosts.length ? Math.min(...feedPosts.map(p => (p.comments?.length || 0))) : 0;
+  const specialPost = feedPosts.find(p => (p.comments?.length || 0) === minComments);
+
+  feedPosts.forEach(p => {
+    const postEl = createPostDiv(p, page, p === specialPost); // createPostDiv doit inclure likes/dislikes + commentaires
+    feed.appendChild(postEl);
+  });
+
+  updatePublishBtn();
+}
+
+function renderZones(){
+  const container = document.getElementById('zone-tabs');
+  container.innerHTML = '';
+
+  // Boutons pour les zones existantes
+  zones.forEach(z => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn';
+    btn.innerText = z;
+    btn.onclick = () => {
+      currentZone = z;
+      document.querySelectorAll('#zone-tabs .tab-btn').forEach(b => b.classList.remove('active-tab'));
+      btn.classList.add('active-tab');
+      renderZoneFeed();
+      updatePublishBtn();
+    };
+    if (z === currentZone) btn.classList.add('active-tab');
+    container.appendChild(btn);
+  });
+
+  // Bouton + Créer
+  const createBtn = document.createElement('button');
+  createBtn.className = 'tab-btn';
+  createBtn.innerText = '+ Créer';
+  createBtn.onclick = () => {
+    promptModal('Nom de la zone :', (name) => {
+      if (!name) return;
+
+      if (zones.includes(name)) {
+        alertModal('Zone déjà existante');
+        return;
+      }
+
+      // Ajouter la zone pour affichage immédiat
+      zones.push(name);
+      renderZones();
+
+      // Sauvegarde : ne conserver que les zones avec au moins un post
+      saveZones();
+    });
+  };
+  container.appendChild(createBtn);
+}
+
+// Sauvegarde zones : ne garder que celles avec au moins un post
+function saveZones() {
+  const zonesAvecPosts = zones.filter(z => posts.some(p => p.zone === z));
+  localStorage.setItem(STORAGE_ZONES_KEY, JSON.stringify(zonesAvecPosts));
+}
+
+function renderZoneFeed(){
+  const feed = document.getElementById('zone-feed');
+  feed.innerHTML = '';
+
+  if (!currentZone) return updatePublishBtn();
+
+  const zonePosts = posts.filter(p => p.zone === currentZone);
+  if (!zonePosts.length) {
+    feed.innerHTML = '<p>Aucun post ici.</p>';
+    return;
+  }
+
+  zonePosts.sort((a,b) => b.id - a.id).forEach(p => {
+    const postEl = createPostDiv(p, 'zone');
+    feed.appendChild(postEl);
+    renderComments(p, 'zone');
+  });
+
+  updatePublishBtn();
+}
+
+/* ---------------------------
+   PUBLISH / EDIT / DELETE
+   --------------------------- */
+function updatePublishBtn(){
+  const btn = document.querySelector('.publish-btn');
+  if (!btn) return;
+  const activePage = document.querySelector('.page.active-page');
+  if (!activePage) return;
+  btn.style.display = (activePage.id === 'filter-page' || (activePage.id === 'home-page' && zones.length > 0)) ? 'flex' : 'none';
+}
+
+function startPost(){
+    if(!currentUser || currentUser === 'Utilisateur') {
+        alertModal('Connecte-toi pour publier');
+        return;
+    }
+    if(!currentZone) {
+        return alertModal('Pour publier, va dans l\'onglet Zones et choisis une zone !');
+    }
+    if(document.querySelector('.post-editor')) return;
+
+    const feed = document.getElementById('zone-feed');
+    const editorDiv = document.createElement('div');
+    editorDiv.className = 'post post-editor';
+    editorDiv.innerHTML = `
+        <textarea id="new-post-text" placeholder="Fais ton lailo..."></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button onclick="publishPost()">Publier</button>
+          <button onclick="cancelPost(this)">Annuler</button>
+        </div>
+    `;
+    feed.prepend(editorDiv);
+    document.getElementById('new-post-text').focus();
+}
+
+async function publishPost(){
+  const txtarea = document.getElementById('new-post-text');
+  if(!txtarea || !txtarea.value.trim()) return;
+
+  const content = txtarea.value.trim();
+  const postObj = {
+    user: currentUser,
+    content,
+    zone: currentZone,
+    likes: 0,
+    dislikes: 0,
+    likedBy: [],
+    dislikedBy: [],
+    comments: []
+  };
+
+  // try server save, fallback to local
+  try {
+    const res = await fetch('https://gbairai-backend.onrender.com/api/posts', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(postObj)
+    });
+    if (res.ok) {
+      const savedPost = await res.json();
+      posts.unshift(savedPost);
+    } else {
+      // fallback local: create a post id
+      postObj.id = Date.now() + Math.floor(Math.random()*1000);
+      posts.unshift(postObj);
+    }
+  } catch (e) {
+    postObj.id = Date.now() + Math.floor(Math.random()*1000);
+    posts.unshift(postObj);
+  }
+
+  saveToLocal();
+  if (txtarea.closest('.post-editor')) txtarea.closest('.post-editor').remove();
+
+  if (document.getElementById('home-page').classList.contains('active-page')) refreshFeed('home');
+  else refreshFeed('zone');
+}
+
+/* cancel editor */
+function cancelPost(btn){
+  const editor = btn.closest('.post-editor');
+  if (editor) editor.remove();
+}
+
+/* ---------------------------
+   CREATE POST DIV
+--------------------------- */
+function createPostDiv(post, page) {
+    const div = document.createElement('div');
+    div.className = 'post';
+    div.id = `post-${post.id}-${page}`;
+
+    const commentId = `comments-${post.id}-${page}`;
+
+    // Menu pour modifier/supprimer uniquement si post du currentUser
+    let menuHTML = '';
+    if(post.user === currentUser){
+        menuHTML = `
+<div class="post-menu">
+    <button class="menu-btn" onclick="toggleMenu(${post.id}, '${page}')">⋮</button>
+    <div class="menu-content" id="menu-${post.id}-${page}">
+        <button onclick="editPost(${post.id}, '${page}')">✏️ Modifier</button>
+        <button onclick="deletePost(${post.id}, '${page}')">🗑️ Supprimer</button>
+    </div>
+</div>`;
+    }
+
+    // Classe CSS pour le pseudo
+    const userClass = post.user === 'système' ? 'user-system' : 'user-normal';
+    const userDisplay = `<span class="${userClass}">
+        ${escapeHtml(post.user)}${page === 'home' && post.zone ? ' - ' + escapeHtml(post.zone) : ''}
+    </span>`;
+
+    div.innerHTML = `
+<div class="post-header">
+    ${userDisplay}
+    ${menuHTML}
+</div>
+<div class="post-content">${escapeHtml(post.content)}</div>
+<div class="post-actions">
+    <button onclick="toggleLike(${post.id}, '${page}')">👍 ${post.likes || 0}</button>
+    <button onclick="toggleDislike(${post.id}, '${page}')">👎 ${post.dislikes || 0}</button>
+    <button onclick="toggleComments(${post.id}, '${page}')">🗨️ ${post.comments ? post.comments.length : 0}</button>
+</div>
+<div class="comments-container" id="${commentId}" style="display:none;flex-direction:column;gap:6px;"></div>
+`;
+
+    // Afficher les commentaires si déjà ouverts
+    if(post.isOpenComments) renderComments(post, page);
+
+    return div;
+}
+
+/* ---------------------------
+   TOGGLE COMMENTS
+--------------------------- */
+function toggleComments(postId, page) {
+    const post = posts.find(p => p.id === postId);
+    if(!post) return;
+
+    post.isOpenComments = !post.isOpenComments;
+    renderComments(post, page, post.isOpenComments);
+}
+
+/* ---------------------------
+   RENDER COMMENTS
+--------------------------- */
+function renderComments(post, page, forceOpenComments = false) {
+    const container = document.getElementById(`comments-${post.id}-${page}`);
+    if(!container) return;
+
+    container.innerHTML = '';
+
+    const section = document.createElement('div');
+    section.className = 'comment-section';
+    section.style.display = 'flex';
+    section.style.flexDirection = 'column';
+    section.style.gap = '8px';
+
+    const commentList = document.createElement('div');
+    commentList.className = 'comments';
+
+    (post.comments || []).forEach((c, idx) => {
+        const div = document.createElement('div');
+        div.className = 'comment comment-bubble';
+        div.style.marginBottom = "6px";
+
+        const text = document.createElement('div');
+        text.className = 'comment-text';
+        text.innerHTML = `<strong>${c.user}</strong>: ${escapeHtml(c.text)}`;
+
+        div.appendChild(text);
+
+        if(c.user === currentUser){
+            const delBtn = document.createElement('button');
+            delBtn.textContent = '⛔';
+            delBtn.onclick = () => deleteCommentBackend(post.id, idx, page);
+            div.appendChild(delBtn);
+        }
+
+        commentList.appendChild(div);
+    });
+
+    section.appendChild(commentList);
+
+    // Zone input pour nouveau commentaire
+    const addCommentDiv = document.createElement('div');
+    addCommentDiv.className = 'add-comment';
+    addCommentDiv.style.display = 'flex';
+    addCommentDiv.style.gap = '5px';
+
+    const input = document.createElement('input');
+    input.placeholder = 'Écrire un commentaire...';
+    input.addEventListener('keypress', e => {
+        if(e.key === 'Enter' && input.value.trim() !== ''){
+            addCommentBackend(post.id, page, input.value.trim());
+            input.value = '';
+        }
+    });
+
+    const sendBtn = document.createElement('button');
+    sendBtn.textContent = '➤';
+    sendBtn.onclick = () => {
+        if(input.value.trim() === '') return;
+        addCommentBackend(post.id, page, input.value.trim());
+        input.value = '';
+    };
+
+    addCommentDiv.appendChild(input);
+    addCommentDiv.appendChild(sendBtn);
+    section.appendChild(addCommentDiv);
+
+    container.appendChild(section);
+
+    // ⚡ Afficher selon l'état ou forceOpenComments
+    container.style.display = (forceOpenComments || post.isOpenComments) ? 'flex' : 'none';
+
+    // Mettre à jour compteur
+    const counterBtn = document.querySelector(`#post-${post.id}-${page} .post-actions button:nth-child(3)`);
+    if(counterBtn) counterBtn.innerText = `🗨️ ${post.comments ? post.comments.length : 0}`;
+}
+
+/* ---------------------------
+   BACKEND / LOCAL COMMENT HANDLERS
+--------------------------- */
+async function addCommentBackend(postId, page, text){
+    text = (text || '').trim();
+    if(!text) return;
+
+    const idx = posts.findIndex(p => p.id === postId);
+    if(idx !== -1){
+        posts[idx].comments = posts[idx].comments || [];
+        posts[idx].comments.push({user: currentUser, text});
+        posts[idx].isOpenComments = true; // garder ouvert
+        saveToLocal();
+        renderComments(posts[idx], page); // juste re-render le post
+    }
+
+    try{
+        const res = await fetch(`https://gbairai-backend.onrender.com/api/posts/${postId}/comments`, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({user: currentUser, text}),
+            credentials:'include'
+        });
+        if(res.ok){
+            const updated = await res.json();
+            const i = posts.findIndex(p => p.id === postId);
+            if(i !== -1) posts[i] = updated;
+            posts[i].isOpenComments = true;
+            saveToLocal();
+            renderComments(posts[i], page);
+        }
+    } catch(e){}
+}
+
+async function deleteCommentBackend(postId, commentIndex, page){
+    const idx = posts.findIndex(p => p.id === postId);
+    if(idx !== -1){
+        posts[idx].comments.splice(commentIndex, 1);
+        posts[idx].isOpenComments = true;
+        saveToLocal();
+        renderComments(posts[idx], page); // juste re-render le post
+    }
+
+    try{
+        const res = await fetch(`https://gbairai-backend.onrender.com/api/posts/${postId}/comments/${commentIndex}`, {
+            method:'DELETE',
+            credentials:'include'
+        });
+        if(res.ok){
+            const updated = await res.json();
+            const i = posts.findIndex(p => p.id === postId);
+            if(i !== -1) posts[i] = updated;
+            posts[i].isOpenComments = true;
+            saveToLocal();
+            renderComments(posts[i], page);
+        }
+    } catch(e){}
+}
+
+
+/* POSTS - delete / edit (with fallback) */
+async function deletePostBackend(id, page) {
+  try {
+    // Essayer la suppression côté serveur
+    const res = await fetch(`https://gbairai-backend.onrender.com/api/posts/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (res.ok) {
+      // Supprimer le post localement
+      posts = posts.filter(p => p.id !== id);
+
+      // Supprimer les zones qui sont maintenant vides
+      zones = zones.filter(z => posts.some(p => p.zone === z));
+
+      saveToLocal();
+      renderFeed(page);
+      renderZones();
+      return true;
+    }
+  } catch (e) {
+    // fallback local si serveur indisponible
+  }
+
+  // Suppression locale
+  posts = posts.filter(p => p.id !== id);
+
+  // Supprimer les zones vides
+  zones = zones.filter(z => posts.some(p => p.zone === z));
+
+  saveToLocal();
+  renderFeed(page);
+  renderZones();
+  return true;
+}
+
+async function editPostBackend(id, newContent, page) {
+  try {
+    const res = await fetch(`https://gbairai-backend.onrender.com/api/posts/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: newContent }),
+      credentials: 'include'
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      const idx = posts.findIndex(p => p.id === id);
+      if (idx !== -1) posts[idx] = updated;
+      saveToLocal();
+      renderFeed(page);
+      return true;
+    }
+  } catch (e) {
+    // fallback local edit
+  }
+  const p = posts.find(p => p.id === id);
+  if (p) {
+    p.content = newContent;
+    saveToLocal();
+    renderFeed(page);
+  }
+  return true;
+}
+
+
+/* ---------------------------
+   UI action wrappers that call backend &/or do local updates
+   --------------------------- */
+
+function deletePost(id, page) {
+  confirmModal('En cliquant sur OK, votre post sera définitivement supprimé', () => {
+    deletePostBackend(id, page).catch(() => {
+      alertModal('Erreur lors de la suppression du post');
+    });
+  });
+}
+
+function editPost(id, page) {
+  const curr = getPostContent(id);
+  promptModal('Modifier votre post:', async (newContent) => {
+    if (!newContent) return;
+    try {
+      await editPostBackend(id, newContent, page);
+    } catch (e) {
+      alertModal('Erreur lors de la modification du post');
+    }
+  }, curr);
+}
+
+async function toggleLike(postId, page){
+    const post = posts.find(p => p.id === postId);
+    if(!post) return;
+
+    if(post.likedBy.includes(currentUser)){
+        post.likes--;
+        post.likedBy = post.likedBy.filter(u => u !== currentUser);
+    } else {
+        post.likes++;
+        post.likedBy.push(currentUser);
+        if(post.dislikedBy.includes(currentUser)){
+            post.dislikes--;
+            post.dislikedBy = post.dislikedBy.filter(u => u !== currentUser);
+        }
+    }
+    saveToLocal();
+
+    // ⚡ mise à jour DOM immédiate
+    const postDiv = document.getElementById(`post-${post.id}-${page}`);
+    if(postDiv){
+        const likeBtn = postDiv.querySelector('.post-actions button:nth-child(1)');
+        const dislikeBtn = postDiv.querySelector('.post-actions button:nth-child(2)');
+        if(likeBtn) likeBtn.innerText = `👍 ${post.likes}`;
+        if(dislikeBtn) dislikeBtn.innerText = `👎 ${post.dislikes}`;
+    }
+
+    if(post.isOpenComments) renderComments(post, page);
+
+    // 🚀 synchro backend en arrière-plan
+    try { await toggleLikeBackend(postId); } catch(e) {}
+}
+
+async function toggleDislike(postId, page){
+    const post = posts.find(p => p.id === postId);
+    if(!post) return;
+
+    if(post.dislikedBy.includes(currentUser)){
+        post.dislikes--;
+        post.dislikedBy = post.dislikedBy.filter(u => u !== currentUser);
+    } else {
+        post.dislikes++;
+        post.dislikedBy.push(currentUser);
+        if(post.likedBy.includes(currentUser)){
+            post.likes--;
+            post.likedBy = post.likedBy.filter(u => u !== currentUser);
+        }
+    }
+    saveToLocal();
+
+    // ⚡ mise à jour DOM immédiate
+    const postDiv = document.getElementById(`post-${post.id}-${page}`);
+    if(postDiv){
+        const likeBtn = postDiv.querySelector('.post-actions button:nth-child(1)');
+        const dislikeBtn = postDiv.querySelector('.post-actions button:nth-child(2)');
+        if(likeBtn) likeBtn.innerText = `👍 ${post.likes}`;
+        if(dislikeBtn) dislikeBtn.innerText = `👎 ${post.dislikes}`;
+    }
+
+    if(post.isOpenComments) renderComments(post, page);
+
+    // 🚀 synchro backend en arrière-plan
+    try { await toggleDislikeBackend(postId); } catch(e) {}
+}
+/* ---------------------------
+   Small utilities & menu handling
+   --------------------------- */
+function toggleMenu(postId, page){
+  const menu = document.getElementById(`menu-${postId}-${page}`);
+  if(!menu) return;
+
+  const isOpen = menu.style.display === 'block';
+
+  // fermer tous les menus
+  document.querySelectorAll('.menu-content').forEach(m => m.style.display = 'none');
+  document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+
+  if(!isOpen){
+    menu.style.display = 'block';
+    menu.previousElementSibling.classList.add('active'); // bouton actif
+  }
+}
+
+// clic en dehors pour fermer
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.post-menu')){
+    document.querySelectorAll('.menu-content').forEach(m => m.style.display = 'none');
+    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+  }
+});
+/* ---------------------------
+   Modals: alert / confirm / prompt
+   --------------------------- */
+function showModal(message, buttons = [{text:'OK', action:null}]) {
+  const overlay = document.getElementById('modal-overlay');
+  const msg = document.getElementById('modal-message');
+  const btnContainer = document.getElementById('modal-buttons');
+
+  msg.innerHTML = message;
+  btnContainer.innerHTML = '';
+
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.textContent = b.text;
+    btn.onclick = () => {
+      overlay.style.display = 'none';
+      if (b.action) b.action();
+    };
+    btnContainer.appendChild(btn);
+  });
+
+  overlay.style.display = 'flex';
+}
+function alertModal(msg){
+  showModal(msg);
+}
+function confirmModal(msg, callback){
+  showModal(msg, [
+    {text:'Annuler'},
+    {text:'OK', action: callback}
+  ]);
+}
+function promptModal(msg, callback, defaultValue = "") {
+  const overlay = document.getElementById('modal-overlay');
+  const modalMsg = document.getElementById('modal-message');
+  const modalBtns = document.getElementById('modal-buttons');
+
+  modalMsg.innerHTML = '';
+  modalBtns.innerHTML = '';
+
+  const text = document.createElement('p');
+  text.innerText = msg;
+  text.style.fontWeight = 'bold';
+  text.style.marginBottom = '8px';
+  modalMsg.appendChild(text);
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = defaultValue;
+  input.style.width = '100%';
+  input.style.padding = '10px';
+  input.style.border = '1px solid #ccc';
+  input.style.borderRadius = '6px';
+  input.style.fontSize = '15px';
+  input.style.boxSizing = 'border-box';
+  modalMsg.appendChild(input);
+
+  const okBtn = document.createElement('button');
+  okBtn.innerText = 'Enregistrer';
+  okBtn.style.background = '#4CAF50';
+  okBtn.style.color = '#fff';
+  okBtn.onclick = () => {
+    overlay.style.display = 'none';
+    callback(input.value.trim());
+  };
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.innerText = 'Annuler';
+  cancelBtn.style.background = '#f44336';
+  cancelBtn.style.color = '#fff';
+  cancelBtn.onclick = () => overlay.style.display = 'none';
+
+  modalBtns.appendChild(okBtn);
+  modalBtns.appendChild(cancelBtn);
+  overlay.style.display = 'flex';
+}
+
+/* ---------------------------
+   Comments backend wrappers already present above
+   (addCommentBackend, deleteCommentBackend)
+   --------------------------- */
+
+/* ---------------------------
+   Utility: get post content
+   --------------------------- */
+function getPostContent(id){
+  const p = posts.find(x => x.id === id);
+  return p ? p.content : '';
+}
+
+/* ---------------------------
+   Delete/Edit/Like wrappers already defined above
+   --------------------------- */
+
+/* ---------------------------
+   Small helper to escape HTML when injecting content
+   --------------------------- */
+function escapeHtml(unsafe) {
+  if (unsafe === null || unsafe === undefined) return '';
+  return String(unsafe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+window.toggleComments = toggleComments;
+
+window.startPost = startPost;
+window.publishPost = publishPost;
+window.cancelPost = cancelPost;
+window.toggleMenu = toggleMenu;
+window.deletePost = deletePost;
+window.editPost = editPost;
+window.toggleLike = toggleLike;
+window.toggleDislike = toggleDislike;
+window.addCommentBackend = addCommentBackend;
+window.deleteCommentBackend = deleteCommentBackend;
+
+// Initial state
+if (!posts || posts.length === 0) {
+  posts = posts || [];
+  if (!localStorage.getItem(STORAGE_POSTS_KEY)) {
+    posts.push({
+      id: Date.now(),
+      user: 'System',
+      content: 'Bienvenue sur Gbairai (version locale corrigée).',
+      zone: 'Général',
+      likes: 0,
+      dislikes: 0,
+      likedBy: [],
+      dislikedBy: [],
+      comments: []
+                                                              });  
+    saveToLocal();
+  } }       
+
+
+// Render feed
+renderFeed('main'); // page = 'main' ou autre identifiant de feed
+</script>
+</body>
+</html>
