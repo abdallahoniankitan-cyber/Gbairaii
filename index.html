@@ -660,15 +660,16 @@ function renderHome() {
     renderComments(p, 'home');
   });
 }
+
 function renderZones() {
-    // Supprimer les zones vides
-    zones = zones.filter(z => z && z.trim() !== '');
+  // Supprimer les zones vides OU sans posts
+  zones = zones.filter(z => {
+    if (!z || !z.trim()) return false;
+    return posts.some(p => p.zone === z);
+  });
 
-    const container = document.getElementById('zone-tabs');
-    container.innerHTML = '';
-
-  // S'assurer d'avoir la liste à jour
-  zones = zones.filter(z => z && z.trim() !== '');
+  const container = document.getElementById('zone-tabs');
+  container.innerHTML = '';
 
   zones.forEach(z => {
     const btn = document.createElement('button');
@@ -676,13 +677,10 @@ function renderZones() {
     btn.innerText = z;
     btn.onclick = () => {
       currentZone = z;
-      // Visuel onglet actif
       document.querySelectorAll('#zones-list .tab-btn').forEach(b => b.classList.remove('active-tab'));
       btn.classList.add('active-tab');
-      // afficher le feed pour cette zone
       renderZoneFeed();
       updatePublishBtn();
-      // aller sur la page Zones si nécessaire
       document.getElementById('home-page')?.classList.remove('active-page');
       document.getElementById('filter-page')?.classList.add('active-page');
     };
@@ -690,7 +688,7 @@ function renderZones() {
     container.appendChild(btn);
   });
 
-  // bouton pour ajouter une nouvelle zone (même style que les onglets)
+  // bouton + Créer
   const createBtn = document.createElement('button');
   createBtn.className = 'tab-btn';
   createBtn.innerText = '+ Créer';
@@ -700,7 +698,6 @@ function renderZones() {
       document.getElementById('new-zone-name').value = '';
       modal.style.display = 'flex';
     } else {
-      // fallback simple
       const name = prompt('Nom de la zone:');
       if (name && name.trim()) createZone(name.trim());
     }
