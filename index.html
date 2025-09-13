@@ -413,17 +413,23 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     const data = await res.json();
     if (res.ok && data.success) {
       currentUser = data.user.username;
+
       document.getElementById('login-page').classList.remove('active-page');
       document.getElementById('home-page').classList.add('active-page');
-      await initData();
+
+      await initData();      // récupère posts et zones
+      renderHome();          // affiche le feed
+      renderZones();         // affiche les boutons + Créer et les zones
+      updatePublishBtn();    // affiche le bouton + pour poster
+
       return;
     }
+
     alertModal(data.message || 'Erreur de connexion');
   } catch (e) {
     alertModal('Impossible de se connecter au serveur.');
   }
 });
-
 /* ---------------------------
    NAVIGATION & TABS
 --------------------------- */
