@@ -652,27 +652,138 @@ function updatePublishBtn(){
 }
 
 function startPost(){
-    if(!currentUser || currentUser === 'Utilisateur') {
-        alertModal('Connecte-toi pour publier');
-        return;
-    }
-    if(!currentZone) {
-        return alertModal('Pour publier, va dans l\'onglet Zones et choisis une zone !');
-    }
-    if(document.querySelector('.post-editor')) return;
 
-    const feed = document.getElementById('zone-feed');
-    const editorDiv = document.createElement('div');
-    editorDiv.className = 'post post-editor';
-    editorDiv.innerHTML = `
-        <textarea id="new-post-text" placeholder="Fais ton lailo..."></textarea>
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
-          <button onclick="publishPost()">Publier</button>
-          <button onclick="cancelPost(this)">Annuler</button>
-        </div>
-    `;
-    feed.prepend(editorDiv);
-    document.getElementById('new-post-text').focus();
+
+/* ---------------------------
+   CREATE POST DIV
+--------------------------- */
+function createPostDiv(post, page) {
+    const div = document.createElement('div');
+    div.className = 'post';
+    div.id = `post-${post.id}-${page}`;
+
+    const commentId = `comments-${post.id}-${page}`;
+
+    // Menu pour modifier/supprimer uniquement si post du currentUser
+    let menuHTML = '';
+    if(po/* ---------------------------
+   FEED / ZONES
+--------------------------- */
+function renderHome() {
+  renderFeed('home');
+}
+
+function renderFeed(page) {
+  const feedId = page === 'home' ? 'home-feed' : 'zone-feed';
+  const feed = document.getElementById(feedId);
+  if (!feed) return;
+
+  feed.innerHTML = '';
+
+  // Récupère les posts selon la page
+  let feedPosts = page === 'home' ? [...posts] : posts.filter(p => p.zone === currentZone);
+
+  // Tri
+  if (page === 'home' && currentHomeTab === 'top') {
+    feedPosts = feedPosts.sort((a,b) => (b.likes||0) - (a.likes||0)).slice(0,10);
+  } else {
+    feedPosts.sort((a,b) => (b.id||0) - (a.id||0));
+  }
+
+  // Post spécial : moins de commentaires
+  const minComments = feedPosts.length ? Math.min(...feedPosts.map(p => (p.comments?.length || 0))) : 0;
+  const specialPost = feedPosts.find(p => (p.comments?.length || 0) === minComments);
+
+  feedPosts.forEach(p => {
+    const postEl = createPostDiv(p, page, p === specialPost);
+    feed.appendChild(postEl);
+    if (page === 'zone') renderComments(p, 'zone');
+  });
+
+  updatePublishBtn();
+}
+
+function renderZones(){
+  const container = document.getElementById('zone-tabs');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Boutons zones existantes
+  zones.forEach(z => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn';
+    btn.innerText = z;
+    btn.onclick = () => {
+      currentZone = z;
+      document.querySelectorAll('#zone-tabs .tab-btn').forEach(b => b.classList.remove('active-tab'));
+      btn.classList.add('active-tab');
+      renderFeed('zone');
+      updatePublishBtn();
+    };
+    if (z === currentZone) btn.classList.add('active-tab');
+    container.appendChild(btn);
+  });
+
+  // Bouton + Créer
+  const createBtn = document.createElement('button');
+  createBtn.className = 'tab-btn';
+  createBtn.innerText = '+ Créer';
+  createBtn.onclick = () => {
+    promptModal('Nom de la zone :', (name) => {
+      if (!name) return;
+
+      if (zones.includes(name)) {
+        alertModal('Zone déjà existante');
+        return;
+      }
+
+      zones.push(name);
+      renderZones();
+      saveZones();
+    });
+  };
+  container.appendChild(createBtn);
+}
+
+// Sauvegarde zones : garder seulement celles avec posts si voulu
+function saveZones() {
+  const zonesAvecPosts = zones.filter(z => posts.some(p => p.zone === z));
+  localStorage.setItem(STORAGE_ZONES_KEY, JSON.stringify(zonesAvecPosts));
+}
+
+/* ---------------------------
+   PUBLISH / EDIT / DELETE
+--------------------------- */
+function updatePublishBtn(){
+  const btn = document.querySelector('.publish-btn');
+  if (!btn) return;
+  const activePage = document.querySelector('.page.active-page');
+  if (!activePage) return;
+  btn.style.display = (activePage.id === 'filter-page' || (activePage.id === 'home-page' && zones.length > 0)) ? 'flex' : 'none';
+}
+
+function startPost(){
+  if(!currentUser || currentUser === 'Utilisateur') {
+    alertModal('Connecte-toi pour publier');
+    return;
+  }
+  if(!currentZone) {
+    return alertModal('Pour publier, va dans l\'onglet Zones et choisis une zone !');
+  }
+  if(document.querySelector('.post-editor')) return;
+
+  const feed = document.getElementById('zone-feed');
+  const editorDiv = document.createElement('div');
+  editorDiv.className = 'post post-editor';
+  editorDiv.innerHTML = `
+    <textarea id="new-post-text" placeholder="Fais ton lailo..."></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="publishPost()">Publier</button>
+      <button onclick="cancelPost(this)">Annuler</button>
+    </div>
+  `;
+  feed.prepend(editorDiv);
+  document.getElementById('new-post-text').focus();
 }
 
 async function publishPost(){
@@ -696,13 +807,13 @@ async function publishPost(){
     const res = await fetch('https://gbairai-backend.onrender.com/api/posts', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
+      credentials: 'include', // ✅ pour session
       body: JSON.stringify(postObj)
     });
     if (res.ok) {
       const savedPost = await res.json();
       posts.unshift(savedPost);
     } else {
-      // fallback local: create a post id
       postObj.id = Date.now() + Math.floor(Math.random()*1000);
       posts.unshift(postObj);
     }
@@ -714,29 +825,15 @@ async function publishPost(){
   saveToLocal();
   if (txtarea.closest('.post-editor')) txtarea.closest('.post-editor').remove();
 
-  if (document.getElementById('home-page').classList.contains('active-page')) refreshFeed('home');
-  else refreshFeed('zone');
+  const activePageId = document.querySelector('.page.active-page')?.id;
+  if (activePageId === 'home-page') renderFeed('home');
+  else renderFeed('zone');
 }
 
-/* cancel editor */
 function cancelPost(btn){
   const editor = btn.closest('.post-editor');
   if (editor) editor.remove();
-}
-
-/* ---------------------------
-   CREATE POST DIV
---------------------------- */
-function createPostDiv(post, page) {
-    const div = document.createElement('div');
-    div.className = 'post';
-    div.id = `post-${post.id}-${page}`;
-
-    const commentId = `comments-${post.id}-${page}`;
-
-    // Menu pour modifier/supprimer uniquement si post du currentUser
-    let menuHTML = '';
-    if(post.user === currentUser){
+                                                         }st.user === currentUser){
         menuHTML = `
 <div class="post-menu">
     <button class="menu-btn" onclick="toggleMenu(${post.id}, '${page}')">⋮</button>
