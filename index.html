@@ -519,7 +519,8 @@ function renderZones() {
   if (!container) return;
   container.innerHTML = '';
 
-  zones = zones.filter(z => z && String(z).trim());
+  // Ne plus filtrer les zones
+  // zones = zones.filter(z => z && String(z).trim());
 
   zones.forEach(z => {
     const btn = document.createElement('button');
@@ -555,7 +556,7 @@ function renderZones() {
     }
   };
   container.appendChild(createBtn);
-}
+  }
 
 function renderZoneFeed() {
   const feed = document.getElementById('zone-feed');
