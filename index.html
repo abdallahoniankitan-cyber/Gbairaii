@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gbairai</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+/* RESET */
+* {box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif;}
+body {transition:0.3s;}
+button {cursor:pointer;outline:none;}
+/* MODES */
+body.dark {background:#121212;color:#e0e0e0;}
+body.light {background:#f2f2f2;color:#333;}
+/* HEADER CORRIGÉ */
+header {
+  width: 100%;
+  background-color: #e1f0ff;
+  padding: 0 20px;
+  border-radius: 0 0 10px 10px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.logo-container {display: flex;align-items: center;gap: 10px;}
+.logo-container img {height: 40px;width: auto;}
+.icons {display: flex;align-items: center;gap: 10px;}
+.header-btn {
+  padding: 6px 10px;border: none;background: #ddd;border-radius: 5px;cursor: pointer;display: flex;align-items: center;justify-content: center;height: 36px;
+}
+/* CONTAINERS */
+.container {padding:15px;max-width:600px;margin:auto;}
+.page {display:none;min-height:100vh;}
+.active-page {display:block;}
+/* BOUTONS UNIFORMES ARRONDIS */
+button {
+  border:none;border-radius:12px;font-weight:bold;padding:8px 14px;transition:0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+button:hover {filter: brightness(1.1);}
+button:active {filter: brightness(0.9);}
+/* SPECIFIQUE */
+.tab-btn {flex:1;text-align:center;}
+.tab-btn.active-tab {filter: brightness(0.85);box-shadow:0 4px 10px rgba(0,0,0,0.25);}
+.tab-container {display:flex;gap:8px;margin:10px 0;justify-content:center;flex-wrap:wrap;}
+.post {padding:14px;margin-bottom:12px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.1);transition:0.2s;}
+.post-header {display:flex;justify-content:space-between;align-items:center;font-weight:bold;margin-bottom:6px;position:relative;}
+.post-content {margin-bottom:8px;word-wrap:break-word;}
+.post-actions {display:flex;gap:10px;margin-bottom:6px;align-items:center;}
+.comments {margin-top:6px;display:flex;flex-direction:column;gap:6px;}
+.comment {display:flex;align-items:center;position:relative;}
+.comment-text {flex:1;padding:6px 10px;border-radius:12px;}
+.comment button {margin-left:8px;background:transparent;color:#ff4d4d;font-weight:bold;font-size:1em;}
+.add-comment {display:flex;gap:5px;margin-top:5px;}
+.add-comment input {flex:1;padding:6px 10px;border-radius:12px;border:1px solid #ccc;background:inherit;color:inherit;}
+.post-editor textarea {width:100%;padding:8px;border-radius:12px;border:1px solid #ccc;margin-bottom:5px;background:inherit;color:inherit;}
+.post-editor textarea:focus {border-color:#4a90e2;outline:none;}
+/* POSTS STYLE */
+body.light .post {background:#fff;color:#333;}
+body.dark .post {background:#1e1e1e;color:#e0e0e0;}
+body.light .comment-text {background:#e1f0ff;color:#333;}
+body.dark .comment-text {background:#2a2a2a;color:#e0e0e0;}
+/* ---------------------------
+   POST MENU ⋮
+--------------------------- */
+.post-menu {position: relative;display: inline-block;}
+.menu-btn {background: transparent;border: none;font-size: 1.2em;cursor: pointer;padding: 4px 8px;border-radius: 6px;transition: 0.2s;}
+.menu-content {display: none;position: absolute;right: 0;top: 110%;background-color: #fff;color: #000;border-radius: 8px;box-shadow: 0 3px 10px rgba(0,0,0,0.2);min-width: 120px;z-index: 999;overflow: hidden;}
+.menu-content button {display: block;width: 100%;padding: 6px 10px;border: none;background: inherit;text-align: left;cursor: pointer;font-size: 0.95em;}
+.menu-content button:hover {background-color: rgba(0,0,0,0.05);}
+/* LOGIN */
+#login-page input {padding:10px 12px;border-radius:12px;border:1px solid #ccc;background:inherit;color:inherit;}
+#login-page input:focus {border-color:#4a90e2;outline:none;}
+#login-page button {background:#4a90e2;color:#fff;width:100%;margin-top:10px;}
+/* BOUTON + */
+.publish-btn {
+  position: fixed;bottom: 20px;right: 20px;width: 55px;height: 55px;border-radius: 50%;color: #000;font-size: 30px;display: flex;align-items: center;justify-content: center;box-shadow: 0 3px 8px rgba(0,0,0,0.2);background: #fff;cursor: pointer;z-index: 999;
+}
+/* Forcer certains textes en noir en mode sombre */
+body.dark #login-page header,
+body.dark #home-page .logo-container span,
+body.dark #filter-page .logo-container span {
+  color: #000 !important;
+}
+
+#login-page input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+#login-page button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(145deg,#4a90e2,#357ABD);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+</style>
+</head>
+<body class="dark">
+
+<!-- LOGIN PAGE -->
+<div id="login-page" class="page active-page">
+  <header>Connexion / Inscription</header>
+  <div class="container" style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
+    <input type="text" id="login-username" placeholder="Pseudo (≥3 caractères)">
+    <input type="password" id="login-password" placeholder="Mot de passe (≥3 caractères)">
+    <button id="login-btn">Connexion</button>
+  </div>
+</div>
+
+<!-- HOME PAGE -->
+<div id="home-page" class="page">
+  <header>
+    <div class="header-content">
+      <div class="logo-container">
+        <img src="monlogo.png" alt="Logo">
+        <span>Gbairai</span>
+      </div>
+      <div class="icons">
+        <button class="header-btn" id="mode-btn">🌙</button>
+        <button class="header-btn" id="logout-btn"><i class="fa-solid fa-right-to-bracket"></i> Déconnexion</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="tab-container">
+    <button class="tab-btn active-tab" onclick="switchHomeTab('top', this)">🏆 Top 10</button>
+    <button class="tab-btn" onclick="switchHomeTab('recent', this)">🕒 Récentes</button>
+    <button class="tab-btn" onclick="goToFilter()">🌐 Zones</button>
+  </div>
+
+  <div id="home-feed" class="publish-area"></div>
+</div>
+
+<!-- FILTER / ZONES PAGE -->
+<div id="filter-page" class="page">
+  <header>
+    <div class="header-content">
+      <div class="logo-container">
+        <img src="monlogo.png" alt="Logo">
+        <span>Zones</span>
+      </div>
+      <div class="icons">
+        <button class="header-btn" onclick="goToHome()">🏠</button>
+        <button class="header-btn" id="mode-btn-2">🌙</button>
+        <button class="header-btn" id="logout-btn-2"><i class="fa-solid fa-right-to-bracket"></i> Déconnexion</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="zone-tabs" class="tab-container"></div>
+  <div id="zone-feed" class="publish-area"></div>
+</div>
+
+<!-- Bouton publier -->
+<button class="publish-btn" onclick="startPost()">+</button>
+
+<!-- Modal simple -->
+<div id="modal-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;">
+  <div id="modal" style="background:#fff;color:#000;padding:20px;border-radius:16px;max-width:320px;width:90%;box-shadow:0 4px 12px rgba(0,0,0,0.3);text-align:center;">
+    <div id="modal-message" style="margin-bottom:16px;"></div>
+    <div id="modal-buttons" style="display:flex;gap:10px;justify-content:center;"></div>
+  </div>
+</div>
+
+<!-- Modal créer zone -->
+<div id="create-zone-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:9999;">
+  <div style="background:#fff;color:#000;padding:20px;border-radius:16px;max-width:320px;width:90%;text-align:center;">
+    <h3>Nouvelle zone</h3>
+    <input id="new-zone-name" type="text" placeholder="Nom de la zone" style="width:100%;padding:8px;border-radius:12px;margin:10px 0;border:1px solid #ccc;">
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button id="submit-zone-btn">Créer</button>
+      <button onclick="document.getElementById('create-zone-modal').style.display='none'">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- état ---------- */
+let posts = [];
+let zones = [];
+let currentUser = null;
+let darkMode = true;
+let currentHomeTab = 'top';
+let currentZone = null;
+
+const FRONT_API = 'https://gbairai-backend.onrender.com';
+
+/* ---------- boot ---------- */
+(async function boot() {
+  try {
+    const res = await fetch(`${FRONT_API}/api/me`, { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      currentUser = data.username || data.user?.username || null;
+      if (currentUser) {
+        document.getElementById('login-page').classList.remove('active-page');
+        document.getElementById('home-page').classList.add('active-page');
+      }
+    }
+  } catch (e) {
+    // ignore
+  } finally {
+    await initData();
+  }
+})();
+
+/* ---------- initData ---------- */
+async function initData() {
+  // posts
+  try {
+    const postsRes = await fetch(`${FRONT_API}/api/posts`);
+    posts = postsRes.ok ? await postsRes.json() : [];
+  } catch (e) { posts = []; }
+
+  // zones (normaliser en string)
+  try {
+    const zonesRes = await fetch(`${FRONT_API}/api/zones`);
+    if (zonesRes.ok) {
+      const raw = await zonesRes.json();
+      zones = Array.isArray(raw) ? raw.map(z => typeof z === 'string' ? z : (z.name || String(z))) : ['Général'];
+    } else zones = ['Général'];
+  } catch (e) { zones = ['Général']; }
+
+  renderHome();
+  renderZones();
+  updatePublishBtn();
+}
+
+/* ---------- helpers UI ---------- */
+function alertModal(message) {
+  const overlay = document.getElementById('modal-overlay');
+  const msg = document.getElementById('modal-message');
+  const btns = document.getElementById('modal-buttons');
+  msg.innerText = message;
+  btns.innerHTML = `<button onclick="document.getElementById('modal-overlay').style.display='none'">OK</button>`;
+  overlay.style.display = 'flex';
+}
+
+function escapeHtml(str){
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+/* ---------- mode / logout ---------- */
+function toggleMode() {
+  darkMode = !darkMode;
+  document.body.className = darkMode ? 'dark' : 'light';
+  document.querySelectorAll('.header-btn').forEach(btn => {
+    if (btn.innerText.includes('🌙') || btn.innerText.includes('☀️')) btn.innerText = darkMode ? '🌙' : '☀️';
+  });
+}
+
+async function logout() {
+  try { await fetch(`${FRONT_API}/api/logout`, { method: 'POST', credentials: 'include' }); } catch(e) {}
+  currentUser = null;
+  currentZone = null;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+  document.getElementById('login-page').classList.add('active-page');
+  updatePublishBtn();
+}
+
+/* ---------- event listeners ---------- */
+document.getElementById('mode-btn')?.addEventListener('click', toggleMode);
+document.getElementById('mode-btn-2')?.addEventListener('click', toggleMode);
+document.getElementById('logout-btn')?.addEventListener('click', logout);
+document.getElementById('logout-btn-2')?.addEventListener('click', logout);
+
+/* ---------- login flow ---------- */
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value.trim();
+
+  if (username.length < 3 || password.length < 3) {
+    alertModal('Pseudo et mot de passe doivent contenir au moins 3 caractères.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${FRONT_API}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      currentUser = data.user?.username || data.username || username;
+      document.getElementById('login-page').classList.remove('active-page');
+      document.getElementById('home-page').classList.add('active-page');
+      await initData();
+      updatePublishBtn();
+    } else {
+      alertModal(data.message || 'Erreur de connexion');
+    }
+  } catch (e) {
+    alertModal('Impossible de se connecter au serveur.');
+  }
+});
+
+/* ---------- NAV ---------- */
+function goToHome() {
+  document.getElementById('filter-page').classList.remove('active-page');
+  document.getElementById('home-page').classList.add('active-page');
+  renderHome();
+  updatePublishBtn();
+}
+function goToFilter() {
+  document.getElementById('home-page').classList.remove('active-page');
+  document.getElementById('filter-page').classList.add('active-page');
+  renderZones();
+  updatePublishBtn();
+}
+function switchHomeTab(tab, btn) {
+  currentHomeTab = tab;
+  document.querySelectorAll('#home-page .tab-btn').forEach(b => b.classList.remove('active-tab'));
+  if (btn) btn.classList.add('active-tab');
+  renderHome();
+}
+
+/* ---------- POSTS CRUD ---------- */
+async function createPost(content, zone) {
+  if (!currentUser) { alertModal('Vous devez être connecté.'); return; }
+  if (!content || !content.trim()) { alertModal('Le contenu ne peut pas être vide.'); return; }
+
+  try {
+    const res = await fetch(`${FRONT_API}/api/posts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, zone }),
+      credentials: 'include'
+    });
+    if (res.ok) {
+      const post = await res.json();
+      // backend peut renvoyer {zone: 'X'} ou {zone: {name:'X'}} — on ne touche pas trop la structure
+      posts.unshift(post);
+      renderHome();
+      renderZones();
+      if (currentZone) renderZoneFeed();
+    } else {
+      const err = await res.json();
+      alertModal(err.message || 'Erreur création post');
+    }
+  } catch (e) {
+    alertModal('Impossible de créer le post.');
+  }
+}
+
+async function editPostOnServer(id, newContent) {
+  try {
+    const res = await fetch(`${FRONT_API}/api/posts/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: newContent }),
+      credentials: 'include'
+    });
+    if (res.ok) {
+      return await res.json();
+    } else {
+      const err = await res.json();
+      alertModal(err.message || 'Erreur édition post');
+      return null;
+    }
+  } catch (e) { alertModal('Impossible d\'éditer le post.'); return null; }
+}
+
+async function deletePost(id) {
+  try {
+    const res = await fetch(`${FRONT_API}/api/posts/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (res.ok) {
+      posts = posts.filter(p => p.id !== id);
+      renderHome();
+      if (currentZone) renderZoneFeed();
+    } else {
+      const err = await res.json();
+      alertModal(err.message || 'Erreur suppression post');
+    }
+  } catch (e) { alertModal('Impossible de supprimer le post.'); }
+}
+
+/* ---------- COMMENTS ---------- */
+async function addComment(postId, text) {
+  if (!text || !text.trim()) return;
+  try {
+    const res = await fetch(`${FRONT_API}/api/posts/${postId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+      credentials: 'include'
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      const idx = posts.findIndex(p => p.id === postId);
+      if (idx !== -1) posts[idx] = updated;
+      renderHome();
+      if (currentZone) renderZoneFeed();
+    }
+  } catch (e) {}
+}
+
+async function deleteComment(postId, idx) {
+  try {
+    const res = await fetch(`${FRONT_API}/api/posts/${postId}/comments/${idx}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      const pidx = posts.findIndex(p => p.id === postId);
+      if (pidx !== -1) posts[pidx] = updated;
+      renderHome();
+      if (currentZone) renderZoneFeed();
+    }
+  } catch (e) {}
+}
+
+/* ---------- LIKE / DISLIKE ---------- */
+async function likePost(id) {
+  try {
+    const res = await fetch(`${FRONT_API}/api/posts/${id}/like`, { method: 'POST', credentials: 'include' });
+    if (res.ok) {
+      const updated = await res.json();
+      const idx = posts.findIndex(p => p.id === id);
+      if (idx !== -1) posts[idx] = updated;
+      renderHome();
+      if (currentZone) renderZoneFeed();
+    }
+  } catch (e) {}
+}
+
+async function dislikePost(id) {
+  try {
+    const res = await fetch(`${FRONT_API}/api/posts/${id}/dislike`, { method: 'POST', credentials: 'include' });
+    if (res.ok) {
+      const updated = await res.json();
+      const idx = posts.findIndex(p => p.id === id);
+      if (idx !== -1) posts[idx] = updated;
+      renderHome();
+      if (currentZone) renderZoneFeed();
+    }
+  } catch (e) {}
+}
+
+/* ---------- ZONES ---------- */
+async function createZone(name) {
+  if (!name || !name.trim()) return;
+  try {
+    const res = await fetch(`${FRONT_API}/api/zones`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+      credentials: 'include'
+    });
+    if (res.ok) {
+      const zone = await res.json();
+      const zname = (typeof zone === 'string') ? zone : (zone.name || String(zone));
+      if (!zones.includes(zname)) zones.push(zname);
+      renderZones();
+    } else {
+      const err = await res.json();
+      alertModal(err.message || 'Erreur création zone');
+    }
+  } catch (e) {
+    alertModal('Impossible de créer la zone.');
+  }
+}
+
+/* ---------- RENDER ---------- */
+function renderHome() {
+  const feed = document.getElementById('home-feed');
+  if (!feed) return;
+  feed.innerHTML = '';
+
+  let filteredPosts = [...posts];
+  if (currentHomeTab === 'top') {
+    filteredPosts.sort((a,b) => ((b.likes||0) - (b.dislikes||0)) - ((a.likes||0) - (a.dislikes||0)));
+  } else if (currentHomeTab === 'new' || currentHomeTab === 'recent') {
+    filteredPosts.sort((a,b) => (b.id || 0) - (a.id || 0));
+  }
+
+  filteredPosts.forEach(p => {
+    const div = createPostDiv(p, 'home');
+    feed.appendChild(div);
+    renderComments(p, 'home');
+  });
+}
+
+function renderZones() {
+  const container = document.getElementById('zone-tabs') || document.getElementById('zones-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  zones = zones.filter(z => z && String(z).trim());
+
+  zones.forEach(z => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn';
+    btn.innerText = z;
+    btn.onclick = () => {
+      currentZone = z;
+      // style actif
+      document.querySelectorAll('#zone-tabs .tab-btn').forEach(b => b.classList.remove('active-tab'));
+      btn.classList.add('active-tab');
+      renderZoneFeed();
+      updatePublishBtn();
+      document.getElementById('home-page')?.classList.remove('active-page');
+      document.getElementById('filter-page')?.classList.add('active-page');
+    };
+    if (z === currentZone) btn.classList.add('active-tab');
+    container.appendChild(btn);
+  });
+
+  // Bouton + Créer
+  const createBtn = document.createElement('button');
+  createBtn.className = 'tab-btn';
+  createBtn.innerText = '+ Créer';
+  createBtn.onclick = () => {
+    const modal = document.getElementById('create-zone-modal');
+    if (modal) {
+      document.getElementById('new-zone-name').value = '';
+      modal.style.display = 'flex';
+      document.getElementById('new-zone-name').focus();
+    } else {
+      const name = prompt('Nom de la zone:');
+      if (name && name.trim()) createZone(name.trim());
+    }
+  };
+  container.appendChild(createBtn);
+}
+
+function renderZoneFeed() {
+  const feed = document.getElementById('zone-feed');
+  if (!feed) return;
+  feed.innerHTML = '';
+
+  if (!currentZone) {
+    feed.innerHTML = "<p>Sélectionne une zone pour voir les posts.</p>";
+    updatePublishBtn();
+    return;
+  }
+
+  const zonePosts = posts.filter(p => p.zone === currentZone || (p.zone && p.zone.name === currentZone));
+
+  if (!zonePosts.length) {
+    feed.innerHTML = "<p>Aucun post ici.</p>";
+  } else {
+    zonePosts
+      .sort((a,b) => (b.id||0) - (a.id||0))
+      .forEach(p => {
+        const postEl = createPostDiv(p, 'zone');
+        feed.appendChild(postEl);
+        renderComments(p, 'zone');
+      });
+  }
+
+  updatePublishBtn();
+}
+
+/* ---------- CREATE POST DIV ---------- */
+function createPostDiv(post, page) {
+  const div = document.createElement('div');
+  div.className = 'post';
+  div.id = `post-${post.id}-${page}`;
+
+  // menu (éditer / supprimer) si propriétaire
+  let menuHTML = '';
+  if (post.user === currentUser) {
+    menuHTML = `<div class="post-menu">
+      <button class="menu-btn" onclick="showEdit(${post.id}, '${page}')">✏️</button>
+      <button class="menu-btn" onclick="deletePost(${post.id})">🗑️</button>
+    </div>`;
+  }
+
+  const userLabel = escapeHtml(post.user || 'Anonyme');
+  const zoneLabel = (page === 'home' && post.zone) ? (' - ' + (typeof post.zone === 'string' ? post.zone : (post.zone.name || ''))) : '';
+
+  div.innerHTML = `
+    <div class="post-header">
+      <span>${userLabel}${zoneLabel}</span>
+      ${menuHTML}
+    </div>
+    <div class="post-content" id="content-${post.id}-${page}">${escapeHtml(post.content)}</div>
+    <div class="post-actions">
+      <button onclick="likePost(${post.id})">👍 ${post.likes||0}</button>
+      <button onclick="dislikePost(${post.id})">👎 ${post.dislikes||0}</button>
+      <button onclick="toggleComments(${post.id}, '${page}')">🗨️ ${post.comments?.length||0}</button>
+    </div>
+    <div class="comments-container" id="comments-${post.id}-${page}" style="display:none;flex-direction:column;gap:6px;"></div>
+  `;
+  return div;
+}
+
+/* ---------- START / PUBLISH / CANCEL ---------- */
+function startPost() {
+  if (!currentUser) return alertModal('Connecte-toi pour publier');
+
+  const activePage = document.querySelector('.page.active-page');
+  const feed = activePage ? activePage.querySelector('.publish-area') : document.querySelector('.publish-area');
+  if (!feed) return alertModal('Aucun emplacement pour publier trouvé.');
+
+  if (feed.querySelector('.post-editor')) return; // éviter doublons
+
+  const editorDiv = document.createElement('div');
+  editorDiv.className = 'post post-editor';
+  editorDiv.innerHTML = `
+    <textarea id="new-post-text" placeholder="Fais ton lailo..." style="min-height:90px;"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+      <button onclick="publishPost()">Publier</button>
+      <button onclick="cancelPost(this)">Annuler</button>
+    </div>
+  `;
+  feed.prepend(editorDiv);
+  document.getElementById('new-post-text').focus();
+}
+
+async function publishPost() {
+  const txt = document.getElementById('new-post-text');
+  if (!txt || !txt.value.trim()) return;
+  await createPost(txt.value.trim(), currentZone || 'Général');
+  const editor = txt.closest('.post-editor');
+  if (editor) editor.remove();
+}
+
+function cancelPost(btn) {
+  const editor = btn.closest('.post-editor');
+  if (editor) editor.remove();
+}
+
+/* ---------- COMMENTS UI ---------- */
+function toggleComments(postId, page) {
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+  post.isOpenComments = !post.isOpenComments;
+  renderComments(post, page, post.isOpenComments);
+}
+
+function renderComments(post, page, forceOpen = false) {
+  const container = document.getElementById(`comments-${post.id}-${page}`);
+  if (!container) return;
+  container.innerHTML = '';
+
+  (post.comments || []).forEach((c, idx) => {
+    const div = document.createElement('div');
+    div.className = 'comment';
+    const user = escapeHtml(c.user || 'Anonyme');
+    const text = escapeHtml(c.text);
+    div.innerHTML = `<div class="comment-text"><strong>${user}</strong>: ${text}</div>`;
+    if (c.user === currentUser) {
+      const btn = document.createElement('button');
+      btn.textContent = '⛔';
+      btn.onclick = () => deleteComment(post.id, idx);
+      div.appendChild(btn);
+    }
+    container.appendChild(div);
+  });
+
+  const addDiv = document.createElement('div');
+  addDiv.className = 'add-comment';
+  addDiv.style.display = 'flex';
+  addDiv.style.gap = '5px';
+
+  const input = document.createElement('input');
+  input.placeholder = 'Écrire un commentaire...';
+  input.addEventListener('keypress', e => {
+    if (e.key === 'Enter' && input.value.trim() !== '') {
+      addComment(post.id, input.value.trim());
+      input.value = '';
+    }
+  });
+  const sendBtn = document.createElement('button');
+  sendBtn.textContent = '➤';
+  sendBtn.onclick = () => {
+    if (input.value.trim() === '') return;
+    addComment(post.id, input.value.trim());
+    input.value = '';
+  };
+
+  addDiv.appendChild(input);
+  addDiv.appendChild(sendBtn);
+  container.appendChild(addDiv);
+
+  container.style.display = (forceOpen || post.isOpenComments) ? 'flex' : 'none';
+}
+
+/* ---------- EDIT INLINE ---------- */
+function showEdit(id, page) {
+  const contentEl = document.getElementById(`content-${id}-${page}`);
+  if (!contentEl) return;
+  const old = contentEl.innerText;
+  contentEl.innerHTML = `
+    <textarea id="edit-${id}-${page}" style="width:100%;min-height:80px;">${escapeHtml(old)}</textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+      <button onclick="submitEdit(${id}, '${page}')">Sauvegarder</button>
+      <button onclick="cancelEdit(${id}, '${page}', ${JSON.stringify(old)})">Annuler</button>
+    </div>
+  `;
+  document.getElementById(`edit-${id}-${page}`).focus();
+}
+
+async function submitEdit(id, page) {
+  const textarea = document.getElementById(`edit-${id}-${page}`);
+  if (!textarea) return;
+  const val = textarea.value.trim();
+  if (!val) return alertModal('Le contenu ne peut pas être vide.');
+  const updated = await editPostOnServer(id, val);
+  if (updated) {
+    const idx = posts.findIndex(p => p.id === id);
+    if (idx !== -1) posts[idx] = updated;
+    renderHome();
+    if (currentZone) renderZoneFeed();
+  }
+}
+
+function cancelEdit(id, page, old) {
+  const contentEl = document.getElementById(`content-${id}-${page}`);
+  if (!contentEl) return;
+  contentEl.innerText = old;
+}
+
+/* ---------- MENU close on click outside ---------- */
+document.addEventListener('click', e => {
+  if (!e.target.closest('.post-menu')) {
+    document.querySelectorAll('.menu-content').forEach(m => m.style.display = 'none');
+    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+  }
+});
+
+/* ---------- create zone modal submit ---------- */
+document.getElementById('submit-zone-btn').addEventListener('click', () => {
+  const name = document.getElementById('new-zone-name').value.trim();
+  if (!name) return alertModal('Le nom de la zone ne peut pas être vide !');
+  createZone(name);
+  document.getElementById('create-zone-modal').style.display = 'none';
+});
+
+/* ---------- publish button visibility ---------- */
+function updatePublishBtn() {
+  const btn = document.querySelector('.publish-btn');
+  if (btn) btn.style.display = currentUser ? 'block' : 'none';
+}
+</script>
+</body>
+</html>
